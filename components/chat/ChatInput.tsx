@@ -6,25 +6,21 @@ import { Send } from 'lucide-react'
 
 interface ChatInputProps {
   onSend: (message: string) => void
+  disabled?: boolean
 }
 
-export function ChatInput({ onSend }: ChatInputProps) {
+export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!message.trim() || loading) return
+    if (!message.trim() || disabled) return
 
     const content = message.trim()
     setMessage('')
-    setLoading(true)
 
-    try {
-      await onSend(content)
-    } finally {
-      setLoading(false)
-    }
+    // onSend is handled asynchronously in the parent component
+    onSend(content)
   }
 
   return (
@@ -34,16 +30,17 @@ export function ChatInput({ onSend }: ChatInputProps) {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === 'Enter' && !e.shiftKey && !disabled) {
               e.preventDefault()
               handleSubmit(e)
             }
           }}
           placeholder="Type your message..."
           rows={2}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none custom-scrollbar"
+          disabled={disabled}
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed"
         />
-        <Button type="submit" disabled={!message.trim() || loading}>
+        <Button type="submit" disabled={!message.trim() || disabled}>
           <Send className="w-4 h-4" />
         </Button>
       </form>

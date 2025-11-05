@@ -58,21 +58,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-primary-600 text-white py-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Start Your Journey?</h2>
-          <p className="text-xl mb-8 text-primary-100">
-            Join Mentor.ai today and begin transforming your life, one step at a time.
-          </p>
-          <Link href="/register">
-            <Button variant="secondary" size="lg">
-              Create Your Account
-            </Button>
-          </Link>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-8 px-6">
         <div className="max-w-6xl mx-auto text-center">

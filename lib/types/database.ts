@@ -58,6 +58,7 @@ export interface Database {
           description: string | null
           main_goal: string
           status: 'active' | 'completed' | 'paused'
+          is_deleted: boolean
           created_at: string
           updated_at: string
         }
@@ -68,6 +69,7 @@ export interface Database {
           description?: string | null
           main_goal: string
           status?: 'active' | 'completed' | 'paused'
+          is_deleted?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -78,6 +80,7 @@ export interface Database {
           description?: string | null
           main_goal?: string
           status?: 'active' | 'completed' | 'paused'
+          is_deleted?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -89,6 +92,7 @@ export interface Database {
           goal_id: string | null
           role: 'user' | 'assistant' | 'system'
           content: string
+          is_deleted: boolean
           created_at: string
         }
         Insert: {
@@ -97,6 +101,7 @@ export interface Database {
           goal_id?: string | null
           role: 'user' | 'assistant' | 'system'
           content: string
+          is_deleted?: boolean
           created_at?: string
         }
         Update: {
@@ -105,6 +110,7 @@ export interface Database {
           goal_id?: string | null
           role?: 'user' | 'assistant' | 'system'
           content?: string
+          is_deleted?: boolean
           created_at?: string
         }
       }

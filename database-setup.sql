@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS public.goals (
   description TEXT,
   main_goal TEXT NOT NULL, -- "one thing"
   status TEXT DEFAULT 'active' CHECK (status IN ('active', 'completed', 'paused')),
+  is_deleted BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -40,6 +41,7 @@ CREATE TABLE IF NOT EXISTS public.milestones (
   order_index INTEGER NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
   completed_at TIMESTAMP WITH TIME ZONE,
+  is_deleted BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -53,6 +55,7 @@ CREATE TABLE IF NOT EXISTS public.actions (
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed')),
   completed_at TIMESTAMP WITH TIME ZONE,
   scheduled_date DATE,
+  is_deleted BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -63,6 +66,7 @@ CREATE TABLE IF NOT EXISTS public.messages (
   goal_id UUID REFERENCES public.goals(id) ON DELETE SET NULL,
   role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
   content TEXT NOT NULL,
+  is_deleted BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -75,6 +79,7 @@ CREATE TABLE IF NOT EXISTS public.progress_logs (
   milestone_id UUID REFERENCES public.milestones(id) ON DELETE SET NULL,
   progress_type TEXT NOT NULL CHECK (progress_type IN ('action', 'milestone', 'goal')),
   points_earned INTEGER DEFAULT 1,
+  is_deleted BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -134,30 +139,34 @@ CREATE POLICY "Users can update own profile"
   USING (auth.uid() = id);
 
 -- RLS Policies for goals
+-- Filter out deleted records in SELECT
 CREATE POLICY "Users can view own goals"
   ON public.goals FOR SELECT
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id AND is_deleted = FALSE);
 
 CREATE POLICY "Users can create own goals"
   ON public.goals FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+-- Update policy: Users can update their own goals
+-- The trigger will prevent restoring deleted records
 CREATE POLICY "Users can update own goals"
   ON public.goals FOR UPDATE
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own goals"
-  ON public.goals FOR DELETE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- RLS Policies for milestones
+-- Filter out deleted records in SELECT
 CREATE POLICY "Users can view own milestones"
   ON public.milestones FOR SELECT
   USING (
     EXISTS (
       SELECT 1 FROM public.goals
-      WHERE goals.id = milestones.goal_id AND goals.user_id = auth.uid()
+      WHERE goals.id = milestones.goal_id 
+        AND goals.user_id = auth.uid()
+        AND goals.is_deleted = FALSE
     )
+    AND milestones.is_deleted = FALSE
   );
 
 CREATE POLICY "Users can create own milestones"
@@ -165,7 +174,9 @@ CREATE POLICY "Users can create own milestones"
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.goals
-      WHERE goals.id = milestones.goal_id AND goals.user_id = auth.uid()
+      WHERE goals.id = milestones.goal_id 
+        AND goals.user_id = auth.uid()
+        AND goals.is_deleted = FALSE
     )
   );
 
@@ -174,14 +185,47 @@ CREATE POLICY "Users can update own milestones"
   USING (
     EXISTS (
       SELECT 1 FROM public.goals
-      WHERE goals.id = milestones.goal_id AND goals.user_id = auth.uid()
+      WHERE goals.id = milestones.goal_id 
+        AND goals.user_id = auth.uid()
+        AND goals.is_deleted = FALSE
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.goals
+      WHERE goals.id = milestones.goal_id 
+        AND goals.user_id = auth.uid()
+        AND goals.is_deleted = FALSE
     )
   );
 
+-- Soft delete policy for milestones
+CREATE POLICY "Users can soft delete own milestones"
+  ON public.milestones FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.goals
+      WHERE goals.id = milestones.goal_id 
+        AND goals.user_id = auth.uid()
+        AND goals.is_deleted = FALSE
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.goals
+      WHERE goals.id = milestones.goal_id 
+        AND goals.user_id = auth.uid()
+        AND goals.is_deleted = FALSE
+    ) AND
+    ((OLD.is_deleted = FALSE AND NEW.is_deleted = TRUE) OR
+     (OLD.is_deleted = NEW.is_deleted))
+  );
+
 -- RLS Policies for actions
+-- Filter out deleted records in SELECT
 CREATE POLICY "Users can view own actions"
   ON public.actions FOR SELECT
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id AND is_deleted = FALSE);
 
 CREATE POLICY "Users can create own actions"
   ON public.actions FOR INSERT
@@ -189,35 +233,182 @@ CREATE POLICY "Users can create own actions"
 
 CREATE POLICY "Users can update own actions"
   ON public.actions FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Soft delete policy for actions
+CREATE POLICY "Users can soft delete own actions"
+  ON public.actions FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (
+    auth.uid() = user_id AND
+    ((OLD.is_deleted = FALSE AND NEW.is_deleted = TRUE) OR
+     (OLD.is_deleted = NEW.is_deleted))
+  );
 
 -- RLS Policies for messages
+-- Filter out deleted records in SELECT
 CREATE POLICY "Users can view own messages"
   ON public.messages FOR SELECT
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id AND is_deleted = FALSE);
 
 CREATE POLICY "Users can create own messages"
   ON public.messages FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+-- Soft delete policy for messages
+CREATE POLICY "Users can soft delete own messages"
+  ON public.messages FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (
+    auth.uid() = user_id AND
+    ((OLD.is_deleted = FALSE AND NEW.is_deleted = TRUE) OR
+     (OLD.is_deleted = NEW.is_deleted))
+  );
+
 -- RLS Policies for progress_logs
+-- Filter out deleted records in SELECT
 CREATE POLICY "Users can view own progress"
   ON public.progress_logs FOR SELECT
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id AND is_deleted = FALSE);
 
 CREATE POLICY "Users can create own progress"
   ON public.progress_logs FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+-- Soft delete policy for progress logs
+CREATE POLICY "Users can soft delete own progress"
+  ON public.progress_logs FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (
+    auth.uid() = user_id AND
+    ((OLD.is_deleted = FALSE AND NEW.is_deleted = TRUE) OR
+     (OLD.is_deleted = NEW.is_deleted))
+  );
+
+-- Function: Helper to check admin status (prevents RLS recursion)
+CREATE OR REPLACE FUNCTION public.is_admin_user(user_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- This function uses SECURITY DEFINER to bypass RLS
+  -- and check if a user is an admin without causing recursion
+  RETURN EXISTS (
+    SELECT 1 FROM public.users
+    WHERE id = user_id AND is_admin = TRUE
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Admin policies (for admin panel)
+-- Uses helper function to prevent infinite recursion
 CREATE POLICY "Admins can view all users"
   ON public.users FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.users
-      WHERE id = auth.uid() AND is_admin = TRUE
-    )
-  );
+  USING (public.is_admin_user(auth.uid()));
+
+CREATE POLICY "Admins can update all users"
+  ON public.users FOR UPDATE
+  USING (public.is_admin_user(auth.uid()));
+
+-- Functions for soft delete operations
+CREATE OR REPLACE FUNCTION soft_delete_goal(goal_uuid UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.goals
+  SET is_deleted = TRUE, updated_at = NOW()
+  WHERE id = goal_uuid AND is_deleted = FALSE;
+  
+  -- Also soft delete related milestones and actions
+  UPDATE public.milestones
+  SET is_deleted = TRUE
+  WHERE goal_id = goal_uuid AND is_deleted = FALSE;
+  
+  UPDATE public.actions
+  SET is_deleted = TRUE
+  WHERE milestone_id IN (
+    SELECT id FROM public.milestones WHERE goal_id = goal_uuid
+  ) AND is_deleted = FALSE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION soft_delete_milestone(milestone_uuid UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.milestones
+  SET is_deleted = TRUE
+  WHERE id = milestone_uuid AND is_deleted = FALSE;
+  
+  -- Also soft delete related actions
+  UPDATE public.actions
+  SET is_deleted = TRUE
+  WHERE milestone_id = milestone_uuid AND is_deleted = FALSE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION soft_delete_action(action_uuid UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.actions
+  SET is_deleted = TRUE
+  WHERE id = action_uuid AND is_deleted = FALSE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION soft_delete_message(message_uuid UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.messages
+  SET is_deleted = TRUE
+  WHERE id = message_uuid AND is_deleted = FALSE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION soft_delete_user_messages(user_uuid UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.messages
+  SET is_deleted = TRUE
+  WHERE user_id = user_uuid AND is_deleted = FALSE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION restore_goal(goal_uuid UUID)
+RETURNS void AS $$
+BEGIN
+  -- Temporarily disable the trigger to allow restoration
+  -- This function uses SECURITY DEFINER so it bypasses RLS
+  UPDATE public.goals
+  SET is_deleted = FALSE, updated_at = NOW()
+  WHERE id = goal_uuid AND is_deleted = TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger to prevent users from restoring deleted records themselves
+-- (Only admins or the restore function can restore)
+CREATE OR REPLACE FUNCTION prevent_self_restore()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- If trying to change is_deleted from TRUE to FALSE, block it
+  -- Users can only soft delete (FALSE -> TRUE), not restore (TRUE -> FALSE)
+  -- The restore_goal() function uses SECURITY DEFINER so it bypasses this check
+  IF OLD.is_deleted = TRUE AND NEW.is_deleted = FALSE THEN
+    -- Only allow if called from restore function or if user is admin
+    -- For now, we'll block all user-initiated restores
+    -- Use the restore_goal() function instead
+    RAISE EXCEPTION 'Cannot restore deleted record. Use restore_goal() function or contact admin.';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop trigger if exists
+DROP TRIGGER IF EXISTS prevent_goal_restore ON public.goals;
+
+-- Create trigger to prevent user-initiated restores
+CREATE TRIGGER prevent_goal_restore
+  BEFORE UPDATE ON public.goals
+  FOR EACH ROW
+  WHEN (OLD.is_deleted IS DISTINCT FROM NEW.is_deleted)
+  EXECUTE FUNCTION prevent_self_restore();
 
 -- Functions for updating timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -232,6 +423,13 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS update_users_updated_at ON public.users;
 DROP TRIGGER IF EXISTS update_goals_updated_at ON public.goals;
 
+-- Create indexes for better performance on is_deleted queries
+CREATE INDEX IF NOT EXISTS idx_goals_is_deleted ON public.goals(is_deleted) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_milestones_is_deleted ON public.milestones(is_deleted) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_actions_is_deleted ON public.actions(is_deleted) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_messages_is_deleted ON public.messages(is_deleted) WHERE is_deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_progress_logs_is_deleted ON public.progress_logs(is_deleted) WHERE is_deleted = FALSE;
+
 -- Create triggers for automatic timestamp updates
 CREATE TRIGGER update_users_updated_at 
   BEFORE UPDATE ON public.users
@@ -243,7 +441,31 @@ CREATE TRIGGER update_goals_updated_at
 
 -- Verify setup
 SELECT 'Database setup complete!' as status;
-SELECT COUNT(*) as tables_created FROM information_schema.tables 
+
+-- Verify tables exist
+SELECT 
+  table_name,
+  CASE 
+    WHEN table_name IN ('users', 'goals', 'milestones', 'actions', 'messages', 'progress_logs', 'avatar_stages') 
+    THEN '✅ Created' 
+    ELSE '❌ Missing' 
+  END as status
+FROM information_schema.tables 
 WHERE table_schema = 'public' 
-AND table_name IN ('users', 'goals', 'milestones', 'actions', 'messages', 'progress_logs', 'avatar_stages');
+AND table_name IN ('users', 'goals', 'milestones', 'actions', 'messages', 'progress_logs', 'avatar_stages')
+ORDER BY table_name;
+
+-- Verify users table structure
+SELECT 
+  'Users table columns:' as info,
+  COUNT(*) as column_count
+FROM information_schema.columns
+WHERE table_schema = 'public' 
+AND table_name = 'users';
+
+-- Verify users table has data (if any)
+SELECT 
+  'Users table:' as info,
+  COUNT(*) as user_count
+FROM public.users;
 

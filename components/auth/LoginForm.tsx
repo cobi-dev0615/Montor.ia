@@ -21,15 +21,38 @@ export function LoginForm() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) {
-        setError(error.message)
+      if (signInError) {
+        // Check if error is due to unverified email
+        if (signInError.message.includes('email') && signInError.message.includes('confirm')) {
+          setError('Please verify your email before signing in. Check your inbox for the verification link.')
+          // Optionally redirect to verify-email page
+          router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+          setLoading(false)
+          return
+        }
+        setError(signInError.message)
         setLoading(false)
-      } else {
+        return
+      }
+
+      // Check if email is verified
+      if (data.session) {
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        // If email is not verified, redirect to verification page
+        if (user && !user.email_confirmed_at) {
+          setError('Please verify your email before signing in.')
+          router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+          setLoading(false)
+          return
+        }
+
+        // Email verified, proceed to dashboard
         router.push('/dashboard')
         router.refresh()
       }

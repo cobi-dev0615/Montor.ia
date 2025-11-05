@@ -9,29 +9,55 @@ import { X } from 'lucide-react'
 interface CreateGoalModalProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: (goalId?: string) => void
 }
 
-export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
+export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalProps) {
   const [title, setTitle] = useState('')
   const [mainGoal, setMainGoal] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
 
     try {
-      // TODO: Call API to create goal
-      // await fetch('/api/goals', { method: 'POST', body: JSON.stringify({ title, main_goal: mainGoal, description }) })
-      
+      const response = await fetch('/api/goals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          main_goal: mainGoal,
+          description: description || null,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to create goal')
+      }
+
+      const data = await response.json()
+      const goalId = data.goal?.id
+
       // Reset form and close
       setTitle('')
       setMainGoal('')
       setDescription('')
       onClose()
-    } catch (error) {
-      console.error('Error creating goal:', error)
+      
+      // Call success callback to refresh goals list and pass goalId for plan generation
+      if (onSuccess) {
+        onSuccess(goalId)
+      }
+    } catch (err) {
+      console.error('Error creating goal:', err)
+      setError(err instanceof Error ? err.message : 'Failed to create goal')
     } finally {
       setLoading(false)
     }
@@ -53,6 +79,12 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
               Goal Title *
@@ -64,6 +96,7 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 

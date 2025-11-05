@@ -8,8 +8,11 @@ interface GoalCardProps {
     id: string
     title: string
     main_goal: string
+    description?: string | null
     status: string
     progress: number
+    created_at?: string
+    updated_at?: string
   }
 }
 

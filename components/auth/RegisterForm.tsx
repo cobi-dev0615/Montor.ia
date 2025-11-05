@@ -52,43 +52,86 @@ export function RegisterForm() {
     setLoading(true)
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Step 1: Sign up user with Supabase Auth
+      // Supabase will automatically send email verification if enabled in dashboard
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          // Enable email verification - Supabase will send verification email
+          emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/dashboard`,
           data: {
             full_name: fullName,
           },
         },
       })
 
-      if (error) {
-        setError(error.message)
+      if (signUpError) {
+        setError(signUpError.message)
         setLoading(false)
-      } else if (data.user) {
-        // Create user profile in public.users table
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email: data.user.email!,
-            full_name: fullName || null,
-            avatar_level: 1,
-            avatar_stage: 'seed',
-            total_progress: 0,
-            consistency_streak: 0,
-            is_admin: false,
-          })
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError)
-        }
-
-        router.push('/dashboard')
-        router.refresh()
+        return
       }
+
+      // Step 2: Immediately use the user ID from signUp response
+      if (!data.user) {
+        setError('Failed to create user account')
+        setLoading(false)
+        return
+      }
+
+      const userId = data.user.id
+      const userEmail = data.user.email
+
+      if (!userEmail) {
+        setError('Email is required')
+        setLoading(false)
+        return
+      }
+
+      // Step 3: Immediately insert user profile into public.users table using the user ID
+      // This happens even if email verification is required - profile is created with unverified status
+      const { error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: userId, // Use the user ID from signUp response
+          email: userEmail,
+          full_name: fullName || null,
+          avatar_level: 1,
+          avatar_stage: 'seed',
+          total_progress: 0,
+          consistency_streak: 0,
+          is_admin: false,
+        })
+
+      if (profileError) {
+        // Handle different error cases
+        if (profileError.code === '23505') {
+          // Duplicate key - profile might already exist (shouldn't happen, but handle gracefully)
+          console.warn('User profile already exists:', profileError.message)
+        } else {
+          // Other database errors - show to user
+          console.error('Error creating user profile:', profileError)
+          setError(`Failed to create profile: ${profileError.message}`)
+          setLoading(false)
+          return
+        }
+      }
+
+      // Step 4: Check if email verification is required
+      // If no session is returned, Supabase requires email verification
+      if (!data.session) {
+        // Email verification required - redirect to verification page
+        // Supabase has sent a verification email automatically
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+        return
+      }
+
+      // Step 5: If session exists (email verification disabled in Supabase), redirect to dashboard
+      router.push('/dashboard')
+      router.refresh()
     } catch (err) {
-      setError('An unexpected error occurred')
+      console.error('Registration error:', err)
+      setError('An unexpected error occurred. Please try again.')
       setLoading(false)
     }
   }

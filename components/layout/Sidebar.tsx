@@ -1,12 +1,15 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { createSupabaseClient } from '@/lib/supabase/client'
 import {
   MessageSquare,
   Target,
   TrendingUp,
   Settings,
   LayoutDashboard,
+  Shield,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -20,11 +23,45 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const supabase = createSupabaseClient()
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          setLoading(false)
+          return
+        }
+
+        const { data: userData } = await supabase
+          .from('users')
+          .select('is_admin')
+          .eq('id', user.id)
+          .single()
+
+        setIsAdmin(userData?.is_admin || false)
+      } catch (error) {
+        console.error('Error checking admin status:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAdminStatus()
+  }, [supabase])
+
+  const allNavItems = [
+    ...navItems,
+    ...(isAdmin ? [{ href: '/admin/dashboard', label: 'Admin', icon: Shield }] : []),
+  ]
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 hidden md:block">
       <nav className="p-4 space-y-2">
-        {navItems.map((item) => {
+        {allNavItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
           

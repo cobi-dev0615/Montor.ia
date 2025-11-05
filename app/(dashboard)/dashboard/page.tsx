@@ -3,9 +3,7 @@ import { StatsCard } from '@/components/dashboard/StatsCard'
 import { AvatarDisplay } from '@/components/dashboard/AvatarDisplay'
 import { ProgressOverview } from '@/components/dashboard/ProgressOverview'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
-import { Button } from '@/components/ui/Button'
-import Link from 'next/link'
-import { Target, MessageSquare, TrendingUp } from 'lucide-react'
+import { Target, TrendingUp } from 'lucide-react'
 
 export default function DashboardPage() {
   return (
@@ -60,30 +58,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-        <div className="flex flex-wrap gap-4">
-          <Link href="/goals?create=true">
-            <Button>
-              <Target className="w-4 h-4 mr-2" />
-              Create New Goal
-            </Button>
-          </Link>
-          <Link href="/chat">
-            <Button variant="outline">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Chat with Mentor
-            </Button>
-          </Link>
-          <Link href="/progress">
-            <Button variant="outline">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              View Progress
-            </Button>
-          </Link>
-        </div>
-      </Card>
     </div>
   )
 }

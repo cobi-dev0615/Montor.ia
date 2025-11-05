@@ -11,9 +11,19 @@ export default function SettingsPage() {
         <p className="text-gray-600 mt-1">Manage your account and preferences</p>
       </div>
 
-      <ProfileSection />
-      <AccountSection />
-      <DataSection />
+      {/* Grid layout: Profile and Data on left, Account on right */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left column: Profile and Data Management stacked */}
+        <div className="lg:col-span-1 space-y-6">
+          <ProfileSection />
+          <DataSection />
+        </div>
+
+        {/* Right column: Account */}
+        <div className="lg:col-span-1">
+          <AccountSection />
+        </div>
+      </div>
     </div>
   )
 }
