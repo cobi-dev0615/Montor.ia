@@ -135,10 +135,40 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
         throw new Error('Failed to update action')
       }
 
-      // Refresh milestones and actions
-      await fetchMilestones()
-      if (onUpdate) {
-        onUpdate()
+      const data = await response.json()
+      const updatedAction = data.action
+
+      // Find which milestone this action belongs to and update only that action
+      const milestoneId = Object.keys(actions).find(mid => 
+        actions[mid].some(a => a.id === actionId)
+      )
+
+      if (milestoneId && updatedAction) {
+        // Update only the specific action in state
+        setActions(prev => {
+          const updatedActions = {
+            ...prev,
+            [milestoneId]: prev[milestoneId].map(action =>
+              action.id === actionId ? { ...action, ...updatedAction } : action
+            )
+          }
+
+          // Check if all actions in this milestone are now completed
+          const updatedActionsForMilestone = updatedActions[milestoneId]
+          const allCompleted = updatedActionsForMilestone.length > 0 && 
+            updatedActionsForMilestone.every(a => a.status === 'completed')
+          
+          // If all actions completed, update milestone status to in_progress
+          if (allCompleted) {
+            setMilestones(currentMilestones => currentMilestones.map(m => 
+              m.id === milestoneId && m.status === 'pending'
+                ? { ...m, status: 'in_progress' as const }
+                : m
+            ))
+          }
+
+          return updatedActions
+        })
       }
     } catch (error) {
       console.error('Error updating action:', error)
@@ -170,10 +200,24 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
         throw new Error('Failed to update milestone')
       }
 
-      // Refresh milestones
-      await fetchMilestones()
-      if (onUpdate) {
-        onUpdate()
+      const data = await response.json()
+      const updatedMilestone = data.milestone
+
+      // Update only the specific milestone in state
+      setMilestones(prev => prev.map(m => 
+        m.id === milestoneId ? { ...m, ...updatedMilestone } : m
+      ))
+
+      // Update all actions for this milestone to completed
+      if (updatedMilestone.status === 'completed' && actions[milestoneId]) {
+        setActions(prev => ({
+          ...prev,
+          [milestoneId]: prev[milestoneId].map(action => ({
+            ...action,
+            status: 'completed' as const,
+            completed_at: updatedMilestone.completed_at || new Date().toISOString(),
+          }))
+        }))
       }
     } catch (error) {
       console.error('Error updating milestone:', error)

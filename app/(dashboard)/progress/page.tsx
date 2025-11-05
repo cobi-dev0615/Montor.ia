@@ -1,7 +1,11 @@
+'use client'
+
 import { Card } from '@/components/ui/Card'
 import { AvatarEvolution } from '@/components/progress/AvatarEvolution'
 import { ProgressTimeline } from '@/components/progress/ProgressTimeline'
 import { ProgressCharts } from '@/components/progress/ProgressCharts'
+import { ProgressStats } from '@/components/progress/ProgressStats'
+import { ActiveGoalsProgress } from '@/components/progress/ActiveGoalsProgress'
 
 export default function ProgressPage() {
   return (
@@ -12,27 +16,37 @@ export default function ProgressPage() {
         <p className="text-gray-600 mt-1">Track your journey and celebrate achievements</p>
       </div>
 
-      {/* Avatar Evolution */}
+      {/* Stats Overview - Full Width Horizontal */}
       <Card>
-        <AvatarEvolution />
+        <ProgressStats />
       </Card>
 
-      {/* Current Goals Progress */}
-      <Card>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Goals Progress</h2>
-        {/* TODO: List of goals with progress */}
-        <p className="text-gray-500 text-sm">No active goals yet</p>
-      </Card>
+      {/* Main Content Grid - Avatar and Goals Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Avatar Evolution - Left Column */}
+        <Card>
+          <AvatarEvolution />
+        </Card>
 
-      {/* Progress Timeline */}
-      <Card>
-        <ProgressTimeline />
-      </Card>
+        {/* Active Goals Progress - Right Column */}
+        <Card>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Goals Progress</h2>
+          <ActiveGoalsProgress />
+        </Card>
+      </div>
 
-      {/* Progress Charts */}
-      <Card>
-        <ProgressCharts />
-      </Card>
+      {/* Charts and Timeline - Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Progress Charts - Left Column */}
+        <Card>
+          <ProgressCharts />
+        </Card>
+
+        {/* Progress Timeline - Right Column */}
+        <Card>
+          <ProgressTimeline />
+        </Card>
+      </div>
     </div>
   )
 }

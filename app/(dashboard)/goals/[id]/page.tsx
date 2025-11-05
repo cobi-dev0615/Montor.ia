@@ -163,7 +163,10 @@ export default function GoalDetailPage({
       <Card>
         <MilestoneTimeline 
           goalId={goal.id} 
-          onUpdate={fetchGoal}
+          onUpdate={() => {
+            // Only update milestones status, don't reload entire goal
+            // MilestoneTimeline handles its own refresh
+          }}
           onMilestonesLoaded={handleMilestonesLoaded}
         />
       </Card>
