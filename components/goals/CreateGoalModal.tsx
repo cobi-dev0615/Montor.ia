@@ -67,12 +67,12 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
 
   return (
     <Modal onClose={onClose}>
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">Create New Goal</h2>
+      <div className="glass-card rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[rgba(0,212,255,0.3)] shadow-[0_0_40px_rgba(0,212,255,0.3)]">
+        <div className="flex justify-between items-center p-6 border-b border-[rgba(0,212,255,0.3)]">
+          <h2 className="text-2xl font-bold text-[#00d4ff] neon-glow">Create New Goal</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-300 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -80,13 +80,13 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="p-3 bg-red-900 border border-red-700 rounded-lg text-red-200 text-sm">
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
               Goal Title *
             </label>
             <Input
@@ -101,13 +101,13 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
           </div>
 
           <div>
-            <label htmlFor="mainGoal" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="mainGoal" className="block text-sm font-medium text-gray-300 mb-2">
               Your One Thing *
             </label>
             <textarea
               id="mainGoal"
               rows={5}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-2 border border-[rgba(0,212,255,0.3)] bg-[rgba(0,0,0,0.4)] text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00d4ff] focus:border-transparent focus:shadow-[0_0_15px_rgba(0,212,255,0.3)] resize-none backdrop-blur-sm transition-all duration-300"
               placeholder="Describe the goal that gives meaning to your life, career, and routine..."
               value={mainGoal}
               onChange={(e) => setMainGoal(e.target.value)}
@@ -116,20 +116,20 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
               Description (Optional)
             </label>
             <textarea
               id="description"
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-2 border border-[rgba(0,212,255,0.3)] bg-[rgba(0,0,0,0.4)] text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00d4ff] focus:border-transparent focus:shadow-[0_0_15px_rgba(0,212,255,0.3)] resize-none backdrop-blur-sm transition-all duration-300"
               placeholder="Additional context about your goal..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
-          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+          <div className="flex justify-end gap-4 pt-4 border-t border-[rgba(0,212,255,0.3)]">
             <Button variant="outline" type="button" onClick={onClose}>
               Cancel
             </Button>

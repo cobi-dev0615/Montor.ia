@@ -163,16 +163,16 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="flex flex-col h-full glass-card rounded-lg border border-[rgba(0,212,255,0.3)] shadow-[0_0_30px_rgba(0,212,255,0.2)]">
       <ChatHeader goalId={goalId || undefined} />
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <div className="mb-4 p-3 bg-red-900 border border-red-700 rounded-lg text-red-200 text-sm">
             {error}
           </div>
         )}
         {messages.length === 0 && !loading && (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-gray-400">
             <p>Start a conversation with your AI mentor...</p>
           </div>
         )}

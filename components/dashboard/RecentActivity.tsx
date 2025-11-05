@@ -114,7 +114,7 @@ export function RecentActivity() {
                 {getActivityIcon(activity.type)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-900">{activity.description}</p>
+                <p className="text-sm text-gray-100">{activity.description}</p>
                 <p className="text-xs text-gray-500 mt-1">{activity.date}</p>
               </div>
             </div>

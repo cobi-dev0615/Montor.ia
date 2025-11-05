@@ -63,10 +63,10 @@ export function ProgressOverview() {
       <div className="space-y-4">
         <div>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-600">Journey Completion</span>
-            <span className="text-sm font-medium text-gray-900">{overallProgress}%</span>
+            <span className="text-sm text-gray-400">Journey Completion</span>
+            <span className="text-sm font-medium text-gray-100">{overallProgress}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
+          <div className="w-full bg-gray-700 rounded-full h-3">
             <div
               className="bg-primary-600 h-3 rounded-full transition-all duration-500"
               style={{ width: `${overallProgress}%` }}
@@ -76,14 +76,14 @@ export function ProgressOverview() {
         
         {goalsProgress.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs text-gray-600 font-medium">By Goal:</p>
+            <p className="text-xs text-gray-400 font-medium">By Goal:</p>
             {goalsProgress.slice(0, 3).map((goal, index) => (
               <div key={index} className="space-y-1">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-600 truncate">{goal.title}</span>
+                  <span className="text-xs text-gray-400 truncate">{goal.title}</span>
                   <span className="text-xs text-gray-500 ml-2">{goal.progress}%</span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="w-full bg-gray-700 rounded-full h-1.5">
                   <div
                     className="bg-primary-400 h-1.5 rounded-full transition-all duration-500"
                     style={{ width: `${goal.progress}%` }}

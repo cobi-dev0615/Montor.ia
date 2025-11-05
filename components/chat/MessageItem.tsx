@@ -15,7 +15,7 @@ export function MessageItem({ message }: MessageItemProps) {
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div className={`flex gap-3 max-w-[70%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {!isUser && (
-          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
             <span className="text-sm">🤖</span>
           </div>
         )}
@@ -24,7 +24,7 @@ export function MessageItem({ message }: MessageItemProps) {
             className={`rounded-2xl px-4 py-2 ${
               isUser
                 ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-900'
+                : 'bg-gray-700 text-gray-100'
             }`}
           >
             <p className="text-sm whitespace-pre-wrap">{message.content}</p>

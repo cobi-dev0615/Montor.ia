@@ -76,8 +76,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Welcome back, {userName}!</h1>
-        <p className="text-gray-600 mt-2">Here's your overview.</p>
+        <h1 className="text-3xl font-bold text-[#00d4ff] neon-glow">Welcome back, {userName}!</h1>
+        <p className="text-gray-300 mt-2">Here's your overview.</p>
       </div>
 
       {/* Stats Cards */}

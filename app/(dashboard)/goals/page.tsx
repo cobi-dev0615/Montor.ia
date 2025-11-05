@@ -83,8 +83,8 @@ export default function GoalsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Goals</h1>
-          <p className="text-gray-600 mt-1">Manage your goals and track progress</p>
+          <h1 className="text-3xl font-bold text-[#00d4ff] neon-glow">My Goals</h1>
+          <p className="text-gray-300 mt-1">Manage your goals and track progress</p>
         </div>
         <Button onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -123,8 +123,8 @@ export default function GoalsPage() {
         <Card>
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🎯</div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">No goals yet</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-100 mb-2">No goals yet</h2>
+            <p className="text-gray-400 mb-6">
               Start your journey by defining your one thing
             </p>
             <Button onClick={() => setIsCreateModalOpen(true)}>

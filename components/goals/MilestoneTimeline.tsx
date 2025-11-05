@@ -242,13 +242,13 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Progress Journey</h3>
-        <span className="text-sm text-gray-600">
+        <h3 className="text-lg font-semibold text-gray-100">Progress Journey</h3>
+        <span className="text-sm text-gray-400">
           {completedCount} of {totalCount} completed
         </span>
       </div>
 
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-8">
+      <div className="w-full bg-gray-700 rounded-full h-2 mb-8">
         <div
           className="bg-primary-600 h-2 rounded-full transition-all duration-500"
           style={{ width: `${progressPercentage}%` }}
@@ -262,7 +262,7 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
       ) : (
         <div className="relative">
           {/* Vertical Line */}
-          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200" />
+          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-700" />
 
           {/* Milestones */}
           <div className="space-y-6">
@@ -271,15 +271,17 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
                 {/* Icon */}
                 <div className="relative z-10">
                   {milestone.status === 'completed' ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-600 bg-white" />
+                    <CheckCircle2 className="w-6 h-6 text-green-500 bg-gray-800" />
+                  ) : milestone.status === 'in_progress' ? (
+                    <Circle className="w-6 h-6 text-primary-500 bg-gray-800" />
                   ) : (
-                    <Circle className="w-6 h-6 text-gray-400 bg-white" />
+                    <Circle className="w-6 h-6 text-gray-500 bg-gray-800" />
                   )}
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 pb-6">
-                  <div className={`${milestone.status === 'completed' ? 'text-green-600' : milestone.status === 'in_progress' ? 'text-primary-600' : 'text-gray-600'}`}>
+                  <div className={`${milestone.status === 'completed' ? 'text-green-400' : milestone.status === 'in_progress' ? 'text-primary-400' : 'text-gray-400'}`}>
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <h4 className="font-semibold mb-1">{milestone.title}</h4>
@@ -306,7 +308,7 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
                       <div className="mt-4 space-y-2">
                         {actions[milestone.id] && actions[milestone.id].length > 0 ? (
                           actions[milestone.id].map((action) => (
-                            <Card key={action.id} className="p-3 bg-gray-50">
+                            <Card key={action.id} className="p-3 bg-gray-700">
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
@@ -316,13 +318,13 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
                                       <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
                                     )}
                                     <h5 className={`text-sm font-medium ${
-                                      action.status === 'completed' ? 'text-green-700 line-through' : 'text-gray-900'
+                                      action.status === 'completed' ? 'text-green-400 line-through' : 'text-gray-100'
                                     }`}>
                                       {action.title}
                                     </h5>
                                   </div>
                                   {action.description && (
-                                    <p className="text-xs text-gray-600 ml-6">{action.description}</p>
+                                    <p className="text-xs text-gray-400 ml-6">{action.description}</p>
                                   )}
                                 </div>
                                 {action.status !== 'completed' && (

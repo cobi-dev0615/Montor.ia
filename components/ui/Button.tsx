@@ -18,9 +18,9 @@ export function Button({
   ...props
 }: ButtonProps) {
   const variants = {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800',
-    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400',
-    outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100',
+    primary: 'bg-gradient-to-r from-[#00d4ff] to-[#0099ff] text-white hover:shadow-[0_0_20px_rgba(0,212,255,0.5)] active:opacity-90 transition-all duration-300',
+    secondary: 'bg-[rgba(255,107,53,0.2)] text-[#ff6b35] border border-[rgba(255,107,53,0.5)] hover:bg-[rgba(255,107,53,0.3)] hover:shadow-[0_0_15px_rgba(255,107,53,0.4)] active:opacity-90 transition-all duration-300',
+    outline: 'border-2 border-[rgba(0,212,255,0.5)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)] hover:shadow-[0_0_15px_rgba(0,212,255,0.3)] active:opacity-90 bg-transparent transition-all duration-300',
   }
 
   const sizes = {

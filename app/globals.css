@@ -33,10 +33,12 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-gray-900 text-gray-100;
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: #000000;
+    overflow-x: hidden;
   }
 }
 
@@ -63,23 +65,26 @@
     }
   }
 
-  /* Custom scrollbar */
+  /* Custom scrollbar - Cyberpunk Theme */
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 4px;
+    border: 1px solid rgba(0, 212, 255, 0.1);
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: linear-gradient(180deg, #00d4ff, #ff6b35);
     border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: linear-gradient(180deg, #00ffff, #ff8c42);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
   }
 
   @keyframes slide-in-right {
@@ -95,5 +100,65 @@
 
   .animate-slide-in-right {
     animation: slide-in-right 0.3s ease-out;
+  }
+
+  /* Cyberpunk Neon Glow Effects */
+  .neon-glow {
+    text-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor,
+      0 0 20px currentColor;
+  }
+
+  .neon-border {
+    box-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      inset 0 0 5px currentColor;
+  }
+
+  .holographic-text {
+    background: linear-gradient(
+      90deg,
+      #ff6b35 0%,
+      #00d4ff 25%,
+      #ff00ff 50%,
+      #00ffff 75%,
+      #ff6b35 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: holographicShift 3s linear infinite;
+  }
+
+  @keyframes holographicShift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+
+  /* Glass morphism effect for cards */
+  .glass-card {
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 0 20px rgba(0, 212, 255, 0.1);
+  }
+
+  /* Energy pulse animation */
+  @keyframes energyPulse {
+    0%, 100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
   }
 }

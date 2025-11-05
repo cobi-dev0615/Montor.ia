@@ -128,9 +128,9 @@ export default function GoalDetailPage({
           </Button>
         </Link>
         <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-bold text-gray-900">{goal.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-100">{goal.title}</h1>
           {goal.description && (
-            <p className="text-gray-600 mt-2">{goal.description}</p>
+            <p className="text-gray-400 mt-2">{goal.description}</p>
           )}
         </div>
         <Badge variant={goal.status as any}>{goal.status}</Badge>
@@ -174,11 +174,11 @@ export default function GoalDetailPage({
       {/* Generate Plan Button (if no milestones exist) */}
       {!hasMilestones && (
         <Card>
-          <div className="p-6 bg-primary-50 border border-primary-200 rounded-lg text-center">
-            <h3 className="text-lg font-semibold text-primary-900 mb-2">
+          <div className="p-6 bg-primary-900 border border-primary-700 rounded-lg text-center">
+            <h3 className="text-lg font-semibold text-primary-100 mb-2">
               Ready to create your action plan?
             </h3>
-            <p className="text-primary-700 mb-4">
+            <p className="text-primary-200 mb-4">
               Let Mentor.ai break down your goal into milestones and daily micro-actions.
             </p>
             <Button

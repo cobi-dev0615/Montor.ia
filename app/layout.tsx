@@ -18,6 +18,11 @@ const merriweather = Merriweather({
 export const metadata: Metadata = {
   title: 'Mentor.ai - Your Personal Development Companion',
   description: 'An AI-powered platform focused on human and personal development, helping users discover and achieve their one thing.',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/favicon.ico',
+    apple: '/icon.svg',
+  },
 }
 
 export default function RootLayout({
