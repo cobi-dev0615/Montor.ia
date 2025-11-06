@@ -3,28 +3,26 @@
 import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { useNotification } from '@/hooks/useNotification'
 import { Download, Trash2 } from 'lucide-react'
 import { createSupabaseClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/useUser'
 import { Loader2 } from 'lucide-react'
 
 export function DataSection() {
+  const { showNotification } = useNotification()
   const [loading, setLoading] = useState(false)
   const [exportLoading, setExportLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const supabase = createSupabaseClient()
   const { user } = useUser()
 
   const handleExportData = async () => {
     if (!user) {
-      setError('You must be logged in to export data')
+      showNotification('You must be logged in to export data', 'error')
       return
     }
 
     setExportLoading(true)
-    setError(null)
-    setSuccess(null)
 
     try {
       // Fetch all user data
@@ -75,10 +73,13 @@ export function DataSection() {
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
 
-      setSuccess('Data exported successfully')
+      showNotification('Data exported successfully', 'success')
     } catch (err) {
       console.error('Error exporting data:', err)
-      setError(err instanceof Error ? err.message : 'Failed to export data')
+      showNotification(
+        err instanceof Error ? err.message : 'Failed to export data',
+        'error'
+      )
     } finally {
       setExportLoading(false)
     }
@@ -90,12 +91,10 @@ export function DataSection() {
     }
 
     setLoading(true)
-    setError(null)
-    setSuccess(null)
 
     try {
       if (!user) {
-        setError('You must be logged in to clear chat history')
+        showNotification('You must be logged in to clear chat history', 'error')
         return
       }
 
@@ -110,10 +109,13 @@ export function DataSection() {
         throw updateError
       }
 
-      setSuccess('Chat history cleared successfully')
+      showNotification('Chat history cleared successfully', 'success')
     } catch (err) {
       console.error('Error clearing chat history:', err)
-      setError(err instanceof Error ? err.message : 'Failed to clear chat history')
+      showNotification(
+        err instanceof Error ? err.message : 'Failed to clear chat history',
+        'error'
+      )
     } finally {
       setLoading(false)
     }
@@ -128,16 +130,6 @@ export function DataSection() {
           <p className="text-sm text-gray-600 mb-4">
             Download a copy of all your data including goals, progress, and chat history as a JSON file.
           </p>
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-              {success}
-            </div>
-          )}
           <Button
             variant="outline"
             onClick={handleExportData}

@@ -1,7 +1,5 @@
-import { Card } from '@/components/ui/Card'
 import { ProfileSection } from '@/components/settings/ProfileSection'
 import { AccountSection } from '@/components/settings/AccountSection'
-import { DataSection } from '@/components/settings/DataSection'
 
 export default function SettingsPage() {
   return (
@@ -11,12 +9,11 @@ export default function SettingsPage() {
         <p className="text-gray-400 mt-1">Manage your account and preferences</p>
       </div>
 
-      {/* Grid layout: Profile and Data on left, Account on right */}
+      {/* Grid layout: Profile on left, Account on right */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left column: Profile and Data Management stacked */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Left column: Profile */}
+        <div className="lg:col-span-1">
           <ProfileSection />
-          <DataSection />
         </div>
 
         {/* Right column: Account */}

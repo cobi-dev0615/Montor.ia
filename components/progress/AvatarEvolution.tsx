@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { createSupabaseClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/useUser'
 import { Loader2 } from 'lucide-react'
+import { AnimatedAvatar } from '@/components/animations/AnimatedAvatar'
 
 // Map stage names to icons (constant outside component)
 const stageIcons: Record<string, string> = {
@@ -110,6 +111,21 @@ export function AvatarEvolution() {
 
   useEffect(() => {
     fetchAvatarData()
+    
+    // Recalculate avatar when component mounts to ensure it's synced with goal progress
+    const recalculateAvatar = async () => {
+      try {
+        await fetch('/api/avatar/recalculate', {
+          method: 'POST',
+        })
+        // Refetch avatar data after recalculation
+        fetchAvatarData()
+      } catch (error) {
+        console.error('Error recalculating avatar:', error)
+      }
+    }
+    
+    recalculateAvatar()
   }, [fetchAvatarData])
 
   if (loading) {
@@ -120,8 +136,6 @@ export function AvatarEvolution() {
     )
   }
 
-  const currentStageIcon = stages.find(s => s.level === avatarLevel)?.icon || stageIcons[avatarStage] || '🌱'
-  
   // Calculate progress percentage to next level
   let progressPercentage = 0
   if (pointsToNext > 0) {
@@ -139,13 +153,17 @@ export function AvatarEvolution() {
   return (
     <div className="text-center">
       <div className="mb-8">
-        <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
-          <span className="text-6xl md:text-8xl">
-            {currentStageIcon}
-          </span>
+        <div className="flex justify-center mx-auto mb-4">
+          <AnimatedAvatar
+            stage={avatarStage}
+            level={avatarLevel}
+            size="lg"
+            showParticles={true}
+            intensity={1.2}
+          />
         </div>
-        <h3 className="text-2xl font-semibold text-gray-900 capitalize mb-2">{avatarStage}</h3>
-        <p className="text-gray-600">Level {avatarLevel}</p>
+        <h3 className="text-2xl font-semibold text-gray-100 capitalize mb-2">{avatarStage}</h3>
+        <p className="text-gray-400">Level {avatarLevel}</p>
       </div>
 
       {/* Evolution Path */}
@@ -156,17 +174,17 @@ export function AvatarEvolution() {
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-2 transition-all ${
                   stage.level < avatarLevel
-                    ? 'bg-green-100'
+                    ? 'bg-green-600'
                     : stage.level === avatarLevel
-                    ? 'bg-primary-100 ring-4 ring-primary-300'
-                    : 'bg-gray-100 opacity-50'
+                    ? 'bg-primary-600 ring-4 ring-primary-400'
+                    : 'bg-gray-700 opacity-50'
                 }`}
               >
                 <span>{stage.icon}</span>
               </div>
               <span
                 className={`text-xs font-medium ${
-                  stage.level <= avatarLevel ? 'text-gray-900' : 'text-gray-400'
+                  stage.level <= avatarLevel ? 'text-gray-100' : 'text-gray-400'
                 }`}
               >
                 {stage.name}
@@ -176,18 +194,18 @@ export function AvatarEvolution() {
         </div>
         {pointsToNext > 0 ? (
           <>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-700 rounded-full h-2">
               <div
                 className="bg-primary-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(100, progressPercentage)}%` }}
               />
             </div>
-            <p className="text-sm text-gray-600 mt-2">
+            <p className="text-sm text-gray-400 mt-2">
               {pointsToNext} points until next evolution
             </p>
           </>
         ) : (
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-700 rounded-full h-2">
             <div className="bg-green-600 h-2 rounded-full w-full" />
           </div>
         )}

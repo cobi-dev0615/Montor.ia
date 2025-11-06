@@ -129,19 +129,19 @@ export function ProgressCharts() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">Progress Charts</h2>
+      <h2 className="text-xl font-semibold text-gray-100 mb-6">Progress Charts</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Weekly Progress */}
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-4">Weekly Progress (Last 7 Days)</h3>
+          <h3 className="text-sm font-medium text-gray-300 mb-4">Weekly Progress (Last 7 Days)</h3>
           <div className="space-y-3">
             {weeklyData.map((data, index) => (
               <div key={index} className="flex items-center gap-3">
-                <div className="w-12 text-xs text-gray-600 text-right">{data.day}</div>
+                <div className="w-12 text-xs text-gray-300 text-right">{data.day}</div>
                 <div className="flex-1">
-                  <div className="w-full bg-gray-200 rounded-full h-6 relative">
+                  <div className="w-full bg-gray-700 rounded-full h-6 relative">
                     <div
-                      className="bg-primary-600 h-6 rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                      className="bg-gradient-to-r from-[#00d4ff] to-[#0099ff] h-6 rounded-full transition-all duration-500 flex items-center justify-end pr-2 shadow-[0_0_8px_rgba(0,212,255,0.4)]"
                       style={{
                         width: `${(data.points / maxWeeklyPoints) * 100}%`,
                         minWidth: data.points > 0 ? '30px' : '0',
@@ -160,15 +160,15 @@ export function ProgressCharts() {
 
         {/* Monthly Progress */}
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-4">Monthly Progress (Last 4 Weeks)</h3>
+          <h3 className="text-sm font-medium text-gray-300 mb-4">Monthly Progress (Last 4 Weeks)</h3>
           <div className="space-y-3">
             {monthlyData.map((data, index) => (
               <div key={index} className="flex items-center gap-3">
-                <div className="w-16 text-xs text-gray-600 text-right">{data.week}</div>
+                <div className="w-16 text-xs text-gray-300 text-right">{data.week}</div>
                 <div className="flex-1">
-                  <div className="w-full bg-gray-200 rounded-full h-6 relative">
+                  <div className="w-full bg-gray-700 rounded-full h-6 relative">
                     <div
-                      className="bg-green-600 h-6 rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                      className="bg-gradient-to-r from-[#ff6b35] to-[#ff8c42] h-6 rounded-full transition-all duration-500 flex items-center justify-end pr-2 shadow-[0_0_8px_rgba(255,107,53,0.4)]"
                       style={{
                         width: `${(data.points / maxMonthlyPoints) * 100}%`,
                         minWidth: data.points > 0 ? '40px' : '0',

@@ -58,9 +58,9 @@ export function ActiveGoalsProgress() {
 
   if (goals.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-gray-400">
         <p className="text-sm">No active goals yet.</p>
-        <Link href="/goals" className="text-primary-600 hover:underline text-sm mt-2 inline-block">
+        <Link href="/goals" className="text-[#00d4ff] hover:text-[#00ffff] hover:underline text-sm mt-2 inline-block">
           Create your first goal
         </Link>
       </div>
@@ -73,20 +73,20 @@ export function ActiveGoalsProgress() {
         <Link
           key={goal.id}
           href={`/goals/${goal.id}`}
-          className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          className="block p-4 border border-[rgba(0,212,255,0.3)] rounded-lg hover:bg-[rgba(0,212,255,0.1)] transition-colors glass-card"
         >
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold text-gray-900">{goal.title}</h3>
+            <h3 className="font-semibold text-gray-100">{goal.title}</h3>
             <ArrowRight className="w-4 h-4 text-gray-400" />
           </div>
           <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">Progress</span>
-              <span className="text-primary-600 font-medium">{goal.progress}%</span>
+              <span className="text-gray-300">Progress</span>
+              <span className="text-[#00d4ff] font-medium">{goal.progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-700 rounded-full h-2">
               <div
-                className="bg-primary-600 h-2 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-[#00d4ff] to-[#0099ff] h-2 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(0,212,255,0.5)]"
                 style={{ width: `${goal.progress}%` }}
               />
             </div>

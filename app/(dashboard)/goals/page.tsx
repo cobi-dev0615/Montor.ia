@@ -24,6 +24,9 @@ export default function GoalsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Check if there are any incomplete goals (not completed)
+  const hasIncompleteGoals = goals.some((goal) => goal.status !== 'completed')
+
   const fetchGoals = async () => {
     setLoading(true)
     setError(null)
@@ -85,8 +88,21 @@ export default function GoalsPage() {
         <div>
           <h1 className="text-3xl font-bold text-[#00d4ff] neon-glow">My Goals</h1>
           <p className="text-gray-300 mt-1">Manage your goals and track progress</p>
+          {hasIncompleteGoals && (
+            <p className="text-xs text-[#ff6b35] mt-1">
+              Complete your current goals before creating new ones
+            </p>
+          )}
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
+        <Button
+          onClick={() => setIsCreateModalOpen(true)}
+          disabled={hasIncompleteGoals}
+          title={
+            hasIncompleteGoals
+              ? 'Please complete your current goals before creating new ones'
+              : 'Create a new goal'
+          }
+        >
           <Plus className="w-4 h-4 mr-2" />
           Create Goal
         </Button>
@@ -127,7 +143,15 @@ export default function GoalsPage() {
             <p className="text-gray-400 mb-6">
               Start your journey by defining your one thing
             </p>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              disabled={hasIncompleteGoals}
+              title={
+                hasIncompleteGoals
+                  ? 'Please complete your current goals before creating new ones'
+                  : 'Create your first goal'
+              }
+            >
               <Plus className="w-4 h-4 mr-2" />
               Create Your First Goal
             </Button>

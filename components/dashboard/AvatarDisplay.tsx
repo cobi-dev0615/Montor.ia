@@ -4,15 +4,7 @@ import { useState, useEffect } from 'react'
 import { createSupabaseClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/useUser'
 import { Loader2 } from 'lucide-react'
-
-// Map stage names to icons
-const stageIcons: Record<string, string> = {
-  seed: '🌱',
-  sprout: '🌿',
-  sapling: '🌳',
-  tree: '🌲',
-  oak: '🏛️',
-}
+import { AnimatedAvatar } from '@/components/animations/AnimatedAvatar'
 
 export function AvatarDisplay() {
   const [avatarLevel, setAvatarLevel] = useState(1)
@@ -66,6 +58,21 @@ export function AvatarDisplay() {
     }
 
     fetchAvatarData()
+    
+    // Recalculate avatar when component mounts to ensure it's synced with goal progress
+    const recalculateAvatar = async () => {
+      try {
+        await fetch('/api/avatar/recalculate', {
+          method: 'POST',
+        })
+        // Refetch avatar data after recalculation
+        fetchAvatarData()
+      } catch (error) {
+        console.error('Error recalculating avatar:', error)
+      }
+    }
+    
+    recalculateAvatar()
   }, [user, supabase])
 
   if (loading) {
@@ -76,17 +83,20 @@ export function AvatarDisplay() {
     )
   }
 
-  const currentStageIcon = stageIcons[avatarStage] || '🌱'
   const progressPercentage = pointsToNext > 0 
     ? Math.min(100, ((currentPoints % (pointsToNext + currentPoints - (avatarLevel > 1 ? 10 : 0))) / pointsToNext) * 100)
     : 100
 
   return (
     <div className="flex flex-col items-center">
-      <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-primary-900 flex items-center justify-center mb-4">
-        <span className="text-4xl md:text-6xl">{currentStageIcon}</span>
-      </div>
-      <h3 className="text-xl font-semibold text-gray-100 capitalize mb-2">{avatarStage}</h3>
+      <AnimatedAvatar
+        stage={avatarStage}
+        level={avatarLevel}
+        size="md"
+        showParticles={true}
+        intensity={1}
+      />
+      <h3 className="text-xl font-semibold text-gray-100 capitalize mb-2 mt-4">{avatarStage}</h3>
       <p className="text-sm text-gray-400 mb-4">Level {avatarLevel}</p>
       {pointsToNext > 0 ? (
         <>

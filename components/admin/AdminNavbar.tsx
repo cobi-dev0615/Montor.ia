@@ -3,8 +3,10 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { useEffect, useState } from 'react'
+import { createSupabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
-import { LayoutDashboard, Users, FileText, ArrowLeft, LogOut } from 'lucide-react'
+import { LayoutDashboard, Users, ArrowLeft, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const adminNavItems = [
@@ -18,16 +20,33 @@ const adminNavItems = [
     href: '/admin/users',
     icon: Users,
   },
-  {
-    name: 'Content Management',
-    href: '/admin/content',
-    icon: FileText,
-  },
 ]
 
 export function AdminNavbar() {
   const { user, signOut } = useAuth()
   const pathname = usePathname()
+  const [userFullName, setUserFullName] = useState<string | null>(null)
+  const supabase = createSupabaseClient()
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) return
+
+      try {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('full_name')
+          .eq('id', user.id)
+          .single()
+
+        setUserFullName(userData?.full_name || null)
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      }
+    }
+
+    fetchUserData()
+  }, [user, supabase])
 
   return (
     <nav className="glass-card border-b border-[rgba(0,212,255,0.3)] sticky top-0 z-50 backdrop-blur-xl">
@@ -73,7 +92,9 @@ export function AdminNavbar() {
           {/* User Actions */}
           <div className="flex items-center gap-4">
             {user && (
-              <span className="text-sm text-gray-300 hidden lg:block">{user.email}</span>
+              <span className="text-sm text-gray-300 hidden lg:block">
+                {userFullName || user.email || 'Admin'}
+              </span>
             )}
             <Button variant="outline" size="sm" onClick={signOut}>
               <LogOut className="w-4 h-4" />

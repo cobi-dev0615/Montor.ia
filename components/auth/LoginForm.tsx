@@ -65,19 +65,19 @@ export function LoginForm() {
   return (
     <form onSubmit={handleLogin} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] text-red-400 px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
       
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
           Email
         </label>
         <Input
           id="email"
           type="email"
-          placeholder="Enter your email"
+          placeholder="Digite seu email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -86,13 +86,13 @@ export function LoginForm() {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-          Password
+        <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
+          Senha
         </label>
         <Input
           id="password"
           type="password"
-          placeholder="Enter your password"
+          placeholder="Digite sua senha"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -104,17 +104,17 @@ export function LoginForm() {
         <input
           id="remember"
           type="checkbox"
-          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+          className="h-4 w-4 text-[#00d4ff] focus:ring-[#00d4ff] bg-[rgba(0,0,0,0.4)] border-[rgba(0,212,255,0.3)] rounded"
           checked={rememberMe}
           onChange={(e) => setRememberMe(e.target.checked)}
         />
-        <label htmlFor="remember" className="ml-2 block text-sm text-gray-600">
-          Remember me
+        <label htmlFor="remember" className="ml-2 block text-sm text-gray-300">
+          Lembrar-me
         </label>
       </div>
 
       <Button type="submit" className="w-full" loading={loading} disabled={loading}>
-        {loading ? 'Signing in...' : 'Sign In'}
+        {loading ? 'Entrando...' : 'Entrar'}
       </Button>
     </form>
   )

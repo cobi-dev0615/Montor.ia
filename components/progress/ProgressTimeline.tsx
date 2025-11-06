@@ -141,11 +141,11 @@ export function ProgressTimeline() {
   const getProgressIcon = (type: string) => {
     switch (type) {
       case 'milestone':
-        return <Target className="w-5 h-5 text-primary-600" />
+        return <Target className="w-5 h-5 text-[#00d4ff]" />
       case 'goal':
-        return <Target className="w-5 h-5 text-green-600" />
+        return <Target className="w-5 h-5 text-green-400" />
       default:
-        return <CheckCircle2 className="w-5 h-5 text-primary-600" />
+        return <CheckCircle2 className="w-5 h-5 text-[#00d4ff]" />
     }
   }
 
@@ -160,8 +160,8 @@ export function ProgressTimeline() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Progress History</h2>
-        <div className="flex gap-2">
+        <h2 className="text-xl font-semibold text-gray-100">Progress History</h2>
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => {
               setFilter('all')
@@ -169,8 +169,8 @@ export function ProgressTimeline() {
             }}
             className={`text-sm px-3 py-1 rounded-lg transition-colors ${
               filter === 'all' && !goalFilter
-                ? 'bg-primary-100 text-primary-700'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-[rgba(0,212,255,0.2)] text-[#00d4ff] border border-[rgba(0,212,255,0.5)]'
+                : 'text-gray-300 hover:bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.2)]'
             }`}
           >
             All
@@ -182,8 +182,8 @@ export function ProgressTimeline() {
             }}
             className={`text-sm px-3 py-1 rounded-lg transition-colors ${
               filter === 'week'
-                ? 'bg-primary-100 text-primary-700'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-[rgba(0,212,255,0.2)] text-[#00d4ff] border border-[rgba(0,212,255,0.5)]'
+                : 'text-gray-300 hover:bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.2)]'
             }`}
           >
             This Week
@@ -195,8 +195,8 @@ export function ProgressTimeline() {
             }}
             className={`text-sm px-3 py-1 rounded-lg transition-colors ${
               filter === 'month'
-                ? 'bg-primary-100 text-primary-700'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-[rgba(0,212,255,0.2)] text-[#00d4ff] border border-[rgba(0,212,255,0.5)]'
+                : 'text-gray-300 hover:bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.2)]'
             }`}
           >
             This Month
@@ -208,11 +208,11 @@ export function ProgressTimeline() {
                 setGoalFilter(e.target.value || null)
                 setFilter('all')
               }}
-              className="text-sm px-3 py-1 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="text-sm px-3 py-1 rounded-lg border border-[rgba(0,212,255,0.3)] text-gray-300 bg-[rgba(0,0,0,0.4)] hover:bg-[rgba(0,212,255,0.1)] focus:outline-none focus:ring-2 focus:ring-[#00d4ff] backdrop-blur-sm"
             >
               <option value="">By Goal</option>
               {availableGoals.map((goal) => (
-                <option key={goal.id} value={goal.id}>
+                <option key={goal.id} value={goal.id} className="bg-gray-800">
                   {goal.title}
                 </option>
               ))}
@@ -222,7 +222,7 @@ export function ProgressTimeline() {
       </div>
 
       {progressLogs.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-400">
           <p>No progress history yet.</p>
           <p className="text-sm mt-2">Start completing actions and milestones to see your progress here.</p>
         </div>
@@ -231,26 +231,26 @@ export function ProgressTimeline() {
           {progressLogs.map((log) => (
             <div
               key={log.id}
-              className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0"
+              className="flex items-start gap-4 pb-4 border-b border-[rgba(0,212,255,0.2)] last:border-0"
             >
-              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-[rgba(0,212,255,0.2)] flex items-center justify-center flex-shrink-0 border border-[rgba(0,212,255,0.3)]">
                 {getProgressIcon(log.progress_type)}
               </div>
               <div className="flex-1">
-                <p className="text-gray-900 font-medium">{getProgressDescription(log)}</p>
-                <div className="flex items-center gap-2 mt-1">
+                <p className="text-gray-100 font-medium">{getProgressDescription(log)}</p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
                   {log.goals && (
                     <Link
                       href={`/goals/${log.goal_id}`}
-                      className="text-xs text-primary-600 hover:underline"
+                      className="text-xs text-[#00d4ff] hover:text-[#00ffff] hover:underline"
                     >
                       {log.goals.title}
                     </Link>
                   )}
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {format(new Date(log.created_at), 'MMM d, yyyy h:mm a')}
                   </span>
-                  <span className="text-xs text-primary-600 font-semibold">
+                  <span className="text-xs text-[#00d4ff] font-semibold">
                     +{log.points_earned} points
                   </span>
                 </div>

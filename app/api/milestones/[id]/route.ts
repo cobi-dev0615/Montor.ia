@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { calculateAvatarStageFromPercentage } from '@/lib/avatar/calculateAvatarStage'
+import { getUserGoalProgress } from '@/lib/avatar/getUserGoalProgress'
 
 export async function PATCH(
   request: NextRequest,
@@ -116,24 +118,18 @@ export async function PATCH(
 
           const newProgress = (userData.total_progress || 0) + 10
 
-          // Check avatar level
+          // Calculate avatar level based on goal completion percentage
           const { data: avatarStages } = await supabase
             .from('avatar_stages')
             .select('level, stage_name, min_progress_points')
-            .order('level', { ascending: false })
+            .order('level', { ascending: true })
 
-          let newAvatarLevel = userData.avatar_level || 1
-          let newAvatarStage = userData.avatar_stage || 'seed'
+          // Get average goal completion percentage
+          const { averageProgress } = await getUserGoalProgress(supabase, user.id)
 
-          if (avatarStages) {
-            const qualifyingStage = avatarStages.find(
-              (stage) => newProgress >= stage.min_progress_points
-            )
-            if (qualifyingStage) {
-              newAvatarLevel = qualifyingStage.level
-              newAvatarStage = qualifyingStage.stage_name
-            }
-          }
+          // Calculate avatar stage based on goal completion percentage
+          const { level: newAvatarLevel, stage: newAvatarStage } =
+            calculateAvatarStageFromPercentage(averageProgress, avatarStages || [])
 
           // Update user progress
           await supabase

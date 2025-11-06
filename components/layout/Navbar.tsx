@@ -28,33 +28,35 @@ export function Navbar() {
   const { user, signOut } = useAuth()
   const pathname = usePathname()
   const [isAdmin, setIsAdmin] = useState(false)
+  const [userFullName, setUserFullName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createSupabaseClient()
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const fetchUserData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (!authUser) {
           setLoading(false)
           return
         }
 
         const { data: userData } = await supabase
           .from('users')
-          .select('is_admin')
-          .eq('id', user.id)
+          .select('is_admin, full_name')
+          .eq('id', authUser.id)
           .single()
 
         setIsAdmin(userData?.is_admin || false)
+        setUserFullName(userData?.full_name || null)
       } catch (error) {
-        console.error('Error checking admin status:', error)
+        console.error('Error fetching user data:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    checkAdminStatus()
+    fetchUserData()
   }, [supabase])
 
   const allNavItems = [
@@ -98,7 +100,9 @@ export function Navbar() {
           {/* User Actions */}
           <div className="flex items-center gap-4">
             {user && (
-              <span className="text-sm text-gray-300 hidden lg:block">{user.email}</span>
+              <span className="text-sm text-gray-300 hidden lg:block">
+                {userFullName || user.email || 'Usuário'}
+              </span>
             )}
             <Button variant="outline" size="sm" onClick={signOut}>
               <LogOut className="w-4 h-4" />

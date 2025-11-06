@@ -29,6 +29,11 @@ export function RegisterForm() {
     medium: 'bg-yellow-500',
     strong: 'bg-green-500',
   }
+  const strengthTextColors = {
+    weak: 'text-red-400',
+    medium: 'text-yellow-400',
+    strong: 'text-green-400',
+  }
   const strengthText = {
     weak: 'Weak',
     medium: 'Medium',
@@ -139,32 +144,32 @@ export function RegisterForm() {
   return (
     <form onSubmit={handleRegister} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] text-red-400 px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
 
       <div>
-        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-          Full Name
+        <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-1">
+          Nome Completo
         </label>
         <Input
           id="fullName"
           type="text"
-          placeholder="Enter your full name"
+          placeholder="Digite seu nome completo"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
         />
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
           Email
         </label>
         <Input
           id="email"
           type="email"
-          placeholder="Enter your email"
+          placeholder="Digite seu email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -173,13 +178,13 @@ export function RegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-          Password
+        <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
+          Senha
         </label>
         <Input
           id="password"
           type="password"
-          placeholder="At least 6 characters"
+          placeholder="Pelo menos 6 caracteres"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -192,19 +197,16 @@ export function RegisterForm() {
               <div className={`flex-1 rounded ${strengthColors[passwordStrength]}`} />
               <div
                 className={`flex-1 rounded ${
-                  passwordStrength !== 'weak' ? strengthColors[passwordStrength] : 'bg-gray-200'
+                  passwordStrength !== 'weak' ? strengthColors[passwordStrength] : 'bg-gray-700'
                 }`}
               />
               <div
                 className={`flex-1 rounded ${
-                  passwordStrength === 'strong' ? strengthColors[passwordStrength] : 'bg-gray-200'
+                  passwordStrength === 'strong' ? strengthColors[passwordStrength] : 'bg-gray-700'
                 }`}
               />
             </div>
-            <p className={`text-xs mt-1 ${
-              passwordStrength === 'weak' ? 'text-red-600' :
-              passwordStrength === 'medium' ? 'text-yellow-600' : 'text-green-600'
-            }`}>
+            <p className={`text-xs mt-1 ${strengthTextColors[passwordStrength]}`}>
               {strengthText[passwordStrength]}
             </p>
           </div>
@@ -212,13 +214,13 @@ export function RegisterForm() {
       </div>
 
       <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-          Confirm Password
+        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-1">
+          Confirmar Senha
         </label>
         <Input
           id="confirmPassword"
           type="password"
-          placeholder="Confirm your password"
+          placeholder="Confirme sua senha"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
@@ -227,7 +229,7 @@ export function RegisterForm() {
       </div>
 
       <Button type="submit" className="w-full" loading={loading} disabled={loading}>
-        {loading ? 'Creating account...' : 'Create Account'}
+        {loading ? 'Criando conta...' : 'Criar Conta'}
       </Button>
     </form>
   )

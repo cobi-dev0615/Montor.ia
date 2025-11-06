@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { calculateAvatarStageFromPercentage } from '@/lib/avatar/calculateAvatarStage'
+import { getUserGoalProgress } from '@/lib/avatar/getUserGoalProgress'
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,26 +72,19 @@ export async function POST(request: NextRequest) {
     // Calculate new progress
     const newProgress = (userData?.total_progress || 0) + points_earned
 
-    // Check avatar level based on new progress
+    // Calculate avatar level based on goal completion percentage
     // Note: avatar_stages table doesn't have is_deleted field
     const { data: avatarStages } = await supabase
       .from('avatar_stages')
       .select('level, stage_name, min_progress_points')
-      .order('level', { ascending: false })
+      .order('level', { ascending: true })
 
-    let newAvatarLevel = userData?.avatar_level || 1
-    let newAvatarStage = 'seed'
+    // Get average goal completion percentage
+    const { averageProgress } = await getUserGoalProgress(supabase, user.id)
 
-    if (avatarStages) {
-      // Find the highest avatar stage the user qualifies for
-      const qualifyingStage = avatarStages.find(
-        (stage) => newProgress >= stage.min_progress_points
-      )
-      if (qualifyingStage) {
-        newAvatarLevel = qualifyingStage.level
-        newAvatarStage = qualifyingStage.stage_name
-      }
-    }
+    // Calculate avatar stage based on goal completion percentage
+    const { level: newAvatarLevel, stage: newAvatarStage } =
+      calculateAvatarStageFromPercentage(averageProgress, avatarStages || [])
 
     // Update user progress, streak, and avatar
     const { error: updateError } = await supabase
