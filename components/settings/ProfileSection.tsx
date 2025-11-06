@@ -17,6 +17,14 @@ const stageIcons: Record<string, string> = {
   oak: '🏛️',
 }
 
+const stageNames: Record<string, string> = {
+  seed: 'Semente',
+  sprout: 'Brotinho',
+  sapling: 'Muda',
+  tree: 'Árvore',
+  oak: 'Carvalho',
+}
+
 export function ProfileSection() {
   const { user } = useUser()
   const { showNotification } = useNotification()
@@ -66,11 +74,11 @@ export function ProfileSection() {
         throw updateError
       }
 
-      showNotification('Profile updated successfully', 'success')
+      showNotification('Perfil atualizado com sucesso', 'success')
     } catch (err) {
       console.error('Error updating profile:', err)
       showNotification(
-        err instanceof Error ? err.message : 'Failed to update profile',
+        err instanceof Error ? err.message : 'Falha ao atualizar perfil',
         'error'
       )
     } finally {
@@ -90,24 +98,24 @@ export function ProfileSection() {
 
   return (
     <Card>
-      <h2 className="text-xl font-semibold text-gray-100 mb-6">Profile</h2>
+      <h2 className="text-xl font-semibold text-gray-100 mb-6">Perfil</h2>
       <div className="space-y-6">
         <div className="flex flex-col items-center">
           <div className="w-32 h-32 rounded-full bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] flex items-center justify-center mb-4">
             <span className="text-4xl">{stageIcons[avatarStage] || '🌱'}</span>
           </div>
-          <p className="text-sm text-gray-300 capitalize">{avatarStage}</p>
+          <p className="text-sm text-gray-300">{stageNames[avatarStage] || avatarStage}</p>
         </div>
         <div>
           <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-2">
-            Full Name
+            Nome Completo
           </label>
           <Input
             id="fullName"
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="Enter your full name"
+            placeholder="Digite seu nome completo"
           />
         </div>
         <div>
@@ -121,10 +129,10 @@ export function ProfileSection() {
             disabled
             className="bg-[rgba(0,0,0,0.3)]"
           />
-          <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+          <p className="text-xs text-gray-400 mt-1">O email não pode ser alterado</p>
         </div>
         <Button onClick={handleUpdate} loading={loading} disabled={loading}>
-          Update Profile
+          Atualizar Perfil
         </Button>
       </div>
     </Card>

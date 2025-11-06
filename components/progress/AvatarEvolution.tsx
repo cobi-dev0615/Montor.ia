@@ -15,13 +15,13 @@ const stageIcons: Record<string, string> = {
   oak: '🏛️',
 }
 
-// Map stage names to display names (constant outside component)
+// Map stage names to display names in Portuguese (constant outside component)
 const stageNames: Record<string, string> = {
-  seed: 'Seed',
-  sprout: 'Sprout',
-  sapling: 'Sapling',
-  tree: 'Tree',
-  oak: 'Oak',
+  seed: 'Semente',
+  sprout: 'Brotinho',
+  sapling: 'Muda',
+  tree: 'Árvore',
+  oak: 'Carvalho',
 }
 
 export function AvatarEvolution() {
@@ -31,11 +31,11 @@ export function AvatarEvolution() {
   const [pointsToNext, setPointsToNext] = useState(10)
   const [loading, setLoading] = useState(true)
   const [stages, setStages] = useState<Array<{ level: number; name: string; icon: string; minPoints: number }>>([
-    { level: 1, name: 'Seed', icon: '🌱', minPoints: 0 },
-    { level: 2, name: 'Sprout', icon: '🌿', minPoints: 10 },
-    { level: 3, name: 'Sapling', icon: '🌳', minPoints: 25 },
-    { level: 4, name: 'Tree', icon: '🌲', minPoints: 50 },
-    { level: 5, name: 'Oak', icon: '🏛️', minPoints: 100 },
+    { level: 1, name: 'Semente', icon: '🌱', minPoints: 0 },
+    { level: 2, name: 'Brotinho', icon: '🌿', minPoints: 10 },
+    { level: 3, name: 'Muda', icon: '🌳', minPoints: 25 },
+    { level: 4, name: 'Árvore', icon: '🌲', minPoints: 50 },
+    { level: 5, name: 'Carvalho', icon: '🏛️', minPoints: 100 },
   ])
   const supabase = createSupabaseClient()
   const { user } = useUser()
@@ -162,8 +162,8 @@ export function AvatarEvolution() {
             intensity={1.2}
           />
         </div>
-        <h3 className="text-2xl font-semibold text-gray-100 capitalize mb-2">{avatarStage}</h3>
-        <p className="text-gray-400">Level {avatarLevel}</p>
+        <h3 className="text-2xl font-semibold text-gray-100 mb-2">{stageNames[avatarStage] || avatarStage}</h3>
+        <p className="text-gray-400">Nível {avatarLevel}</p>
       </div>
 
       {/* Evolution Path */}
@@ -201,7 +201,7 @@ export function AvatarEvolution() {
               />
             </div>
             <p className="text-sm text-gray-400 mt-2">
-              {pointsToNext} points until next evolution
+              {pointsToNext} pontos até a próxima evolução
             </p>
           </>
         ) : (

@@ -172,7 +172,7 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
       }
     } catch (error) {
       console.error('Error updating action:', error)
-      alert('Failed to mark action as done')
+      alert('Falha ao marcar ação como concluída')
     } finally {
       setUpdatingActionId(null)
     }
@@ -221,7 +221,7 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
       }
     } catch (error) {
       console.error('Error updating milestone:', error)
-      alert('Failed to mark milestone as complete')
+      alert('Falha ao marcar marco como concluído')
     } finally {
       setUpdatingId(null)
     }
@@ -242,9 +242,9 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-100">Progress Journey</h3>
+        <h3 className="text-lg font-semibold text-gray-100">Jornada de Progresso</h3>
         <span className="text-sm text-gray-400">
-          {completedCount} of {totalCount} completed
+          {completedCount} de {totalCount} concluídos
         </span>
       </div>
 
@@ -257,7 +257,7 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
 
       {milestones.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          <p>No milestones yet. Start by creating milestones for your goal.</p>
+          <p>Ainda não há marcos. Comece criando marcos para sua meta.</p>
         </div>
       ) : (
         <div className="relative">
@@ -335,14 +335,14 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
                                     disabled={updatingActionId === action.id}
                                     className="flex-shrink-0"
                                   >
-                                    {updatingActionId === action.id ? '...' : 'Mark as done'}
+                                    {updatingActionId === action.id ? '...' : 'Marcar como concluído'}
                                   </Button>
                                 )}
                               </div>
                             </Card>
                           ))
                         ) : (
-                          <p className="text-sm text-gray-500 italic ml-6">No micro-actions yet</p>
+                          <p className="text-sm text-gray-500 italic ml-6">Ainda não há micro-ações</p>
                         )}
                       </div>
                     )}
@@ -355,7 +355,7 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
                         disabled={updatingId === milestone.id}
                         className="mt-3"
                       >
-                        {updatingId === milestone.id ? 'Updating...' : 'Mark Complete'}
+                        {updatingId === milestone.id ? 'Atualizando...' : 'Marcar como Concluído'}
                       </Button>
                     )}
                   </div>

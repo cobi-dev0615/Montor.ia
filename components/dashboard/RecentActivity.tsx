@@ -45,16 +45,16 @@ export function RecentActivity() {
             let type: 'action' | 'milestone' | 'goal' = 'action'
 
             if (log.progress_type === 'action' && log.actions?.title) {
-              description = `Completed action: "${log.actions.title}"`
+              description = `Ação concluída: "${log.actions.title}"`
               type = 'action'
             } else if (log.progress_type === 'milestone' && log.milestones?.title) {
-              description = `Completed milestone: "${log.milestones.title}"`
+              description = `Marco concluído: "${log.milestones.title}"`
               type = 'milestone'
             } else if (log.progress_type === 'goal' && log.goals?.title) {
-              description = `Completed goal: "${log.goals.title}"`
+              description = `Meta concluída: "${log.goals.title}"`
               type = 'goal'
             } else {
-              description = `Completed ${log.progress_type}`
+              description = `${log.progress_type} concluído`
             }
 
             return {
@@ -98,12 +98,12 @@ export function RecentActivity() {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+      <h3 className="text-lg font-semibold mb-4 text-gray-100">Atividade Recente</h3>
       {activities.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500 text-sm">No recent activity</p>
+          <p className="text-gray-500 text-sm">Nenhuma atividade recente</p>
           <p className="text-gray-400 text-xs mt-2">
-            Start by creating your first goal!
+            Comece criando sua primeira meta!
           </p>
         </div>
       ) : (
@@ -123,9 +123,9 @@ export function RecentActivity() {
       )}
       <Link
         href="/progress"
-        className="text-sm text-primary-600 hover:underline mt-4 inline-block"
+        className="text-sm text-[#00d4ff] hover:text-[#00ffff] hover:underline mt-4 inline-block transition-colors"
       >
-        View All →
+        Ver Tudo →
       </Link>
     </div>
   )

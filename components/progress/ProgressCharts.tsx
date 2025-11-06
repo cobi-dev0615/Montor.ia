@@ -49,7 +49,7 @@ export function ProgressCharts() {
 
       // Process weekly data (last 7 days)
       const weeklyPoints: Record<string, number> = {}
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
       const last7Days = Array.from({ length: 7 }, (_, i) => {
         const date = new Date()
         date.setDate(date.getDate() - (6 - i))
@@ -82,7 +82,7 @@ export function ProgressCharts() {
       const weeks = Array.from({ length: 4 }, (_, i) => {
         const weekStart = new Date()
         weekStart.setDate(weekStart.getDate() - (7 * (4 - i - 1)))
-        return `Week ${i + 1}`
+        return `Semana ${i + 1}`
       })
 
       weeks.forEach((week) => {
@@ -93,7 +93,7 @@ export function ProgressCharts() {
         const logDate = new Date(log.created_at)
         const weeksAgo = Math.floor((Date.now() - logDate.getTime()) / (1000 * 60 * 60 * 24 * 7))
         if (weeksAgo < 4) {
-          const weekKey = `Week ${4 - weeksAgo}`
+          const weekKey = `Semana ${4 - weeksAgo}`
           monthlyPoints[weekKey] = (monthlyPoints[weekKey] || 0) + log.points_earned
         }
       })
@@ -129,11 +129,11 @@ export function ProgressCharts() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-100 mb-6">Progress Charts</h2>
+      <h2 className="text-xl font-semibold text-gray-100 mb-6">Gráficos de Progresso</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Weekly Progress */}
         <div>
-          <h3 className="text-sm font-medium text-gray-300 mb-4">Weekly Progress (Last 7 Days)</h3>
+          <h3 className="text-sm font-medium text-gray-300 mb-4">Progresso Semanal (Últimos 7 Dias)</h3>
           <div className="space-y-3">
             {weeklyData.map((data, index) => (
               <div key={index} className="flex items-center gap-3">
@@ -160,7 +160,7 @@ export function ProgressCharts() {
 
         {/* Monthly Progress */}
         <div>
-          <h3 className="text-sm font-medium text-gray-300 mb-4">Monthly Progress (Last 4 Weeks)</h3>
+          <h3 className="text-sm font-medium text-gray-300 mb-4">Progresso Mensal (Últimas 4 Semanas)</h3>
           <div className="space-y-3">
             {monthlyData.map((data, index) => (
               <div key={index} className="flex items-center gap-3">

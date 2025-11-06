@@ -60,7 +60,7 @@ export function EditGoalModal({ goal, isOpen, onClose, onSuccess }: EditGoalModa
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to update goal')
+        throw new Error(data.error || 'Falha ao atualizar meta')
       }
 
       onClose()
@@ -69,7 +69,7 @@ export function EditGoalModal({ goal, isOpen, onClose, onSuccess }: EditGoalModa
       }
     } catch (err) {
       console.error('Error updating goal:', err)
-      setError(err instanceof Error ? err.message : 'Failed to update goal')
+      setError(err instanceof Error ? err.message : 'Falha ao atualizar meta')
     } finally {
       setLoading(false)
     }
@@ -81,7 +81,7 @@ export function EditGoalModal({ goal, isOpen, onClose, onSuccess }: EditGoalModa
     <Modal onClose={onClose}>
       <div className="bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-gray-700">
-          <h2 className="text-2xl font-bold text-gray-100">Edit Goal</h2>
+          <h2 className="text-2xl font-bold text-gray-100">Editar Meta</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-300 transition-colors"
@@ -99,12 +99,12 @@ export function EditGoalModal({ goal, isOpen, onClose, onSuccess }: EditGoalModa
 
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-              Goal Title *
+              Título da Meta *
             </label>
             <Input
               id="title"
               type="text"
-              placeholder="e.g., Master Public Speaking"
+              placeholder="ex: Dominar Oratória Pública"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -114,13 +114,13 @@ export function EditGoalModal({ goal, isOpen, onClose, onSuccess }: EditGoalModa
 
           <div>
             <label htmlFor="mainGoal" className="block text-sm font-medium text-gray-300 mb-2">
-              Your One Thing *
+              Sua Única Coisa *
             </label>
             <textarea
               id="mainGoal"
               rows={5}
               className="w-full px-4 py-2 border border-gray-700 bg-gray-800 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none disabled:opacity-50"
-              placeholder="Describe the goal that gives meaning to your life, career, and routine..."
+              placeholder="Descreva a meta que dá sentido à sua vida, carreira e rotina..."
               value={mainGoal}
               onChange={(e) => setMainGoal(e.target.value)}
               required
@@ -130,13 +130,13 @@ export function EditGoalModal({ goal, isOpen, onClose, onSuccess }: EditGoalModa
 
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
-              Description (Optional)
+              Descrição (Opcional)
             </label>
             <textarea
               id="description"
               rows={3}
               className="w-full px-4 py-2 border border-gray-700 bg-gray-800 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none disabled:opacity-50"
-              placeholder="Additional context about your goal..."
+              placeholder="Contexto adicional sobre sua meta..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={loading}
@@ -154,18 +154,18 @@ export function EditGoalModal({ goal, isOpen, onClose, onSuccess }: EditGoalModa
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50"
               disabled={loading}
             >
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-              <option value="paused">Paused</option>
+              <option value="active">Ativa</option>
+              <option value="completed">Concluída</option>
+              <option value="paused">Pausada</option>
             </select>
           </div>
 
           <div className="flex justify-end gap-4 pt-4 border-t border-gray-700">
             <Button variant="outline" type="button" onClick={onClose} disabled={loading}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" loading={loading} disabled={loading}>
-              Update Goal
+              Atualizar Meta
             </Button>
           </div>
         </form>

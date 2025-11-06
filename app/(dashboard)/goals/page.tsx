@@ -34,13 +34,13 @@ export default function GoalsPage() {
       const response = await fetch('/api/goals')
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to fetch goals')
+        throw new Error(data.error || 'Falha ao buscar metas')
       }
       const data = await response.json()
       setGoals(data.goals || [])
     } catch (err) {
       console.error('Error fetching goals:', err)
-      setError(err instanceof Error ? err.message : 'Failed to load goals')
+      setError(err instanceof Error ? err.message : 'Falha ao carregar metas')
     } finally {
       setLoading(false)
     }
@@ -68,7 +68,7 @@ export default function GoalsPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to generate plan')
+        throw new Error(data.error || 'Falha ao gerar plano')
       }
 
       // Refresh goals and navigate to goal detail
@@ -77,7 +77,7 @@ export default function GoalsPage() {
       window.location.href = `/goals/${goalId}`
     } catch (err) {
       console.error('Error generating plan:', err)
-      alert(err instanceof Error ? err.message : 'Failed to generate plan')
+      alert(err instanceof Error ? err.message : 'Falha ao gerar plano')
     }
   }
 
@@ -86,11 +86,11 @@ export default function GoalsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-[#00d4ff] neon-glow">My Goals</h1>
-          <p className="text-gray-300 mt-1">Manage your goals and track progress</p>
+          <h1 className="text-3xl font-bold text-[#00d4ff] neon-glow">Minhas Metas</h1>
+          <p className="text-gray-300 mt-1">Gerencie suas metas e acompanhe o progresso</p>
           {hasIncompleteGoals && (
             <p className="text-xs text-[#ff6b35] mt-1">
-              Complete your current goals before creating new ones
+              Complete suas metas atuais antes de criar novas
             </p>
           )}
         </div>
@@ -99,12 +99,12 @@ export default function GoalsPage() {
           disabled={hasIncompleteGoals}
           title={
             hasIncompleteGoals
-              ? 'Please complete your current goals before creating new ones'
-              : 'Create a new goal'
+              ? 'Por favor, complete suas metas atuais antes de criar novas'
+              : 'Criar uma nova meta'
           }
         >
           <Plus className="w-4 h-4 mr-2" />
-          Create Goal
+          Criar Meta
         </Button>
       </div>
 
@@ -119,7 +119,7 @@ export default function GoalsPage() {
               onClick={fetchGoals}
               className="ml-4"
             >
-              Retry
+              Tentar Novamente
             </Button>
           </div>
         </Card>
@@ -139,21 +139,21 @@ export default function GoalsPage() {
         <Card>
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🎯</div>
-            <h2 className="text-2xl font-semibold text-gray-100 mb-2">No goals yet</h2>
+            <h2 className="text-2xl font-semibold text-gray-100 mb-2">Ainda não há metas</h2>
             <p className="text-gray-400 mb-6">
-              Start your journey by defining your one thing
+              Comece sua jornada definindo sua única coisa
             </p>
             <Button
               onClick={() => setIsCreateModalOpen(true)}
               disabled={hasIncompleteGoals}
               title={
                 hasIncompleteGoals
-                  ? 'Please complete your current goals before creating new ones'
-                  : 'Create your first goal'
+                  ? 'Por favor, complete suas metas atuais antes de criar novas'
+                  : 'Criar sua primeira meta'
               }
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create Your First Goal
+              Criar Sua Primeira Meta
             </Button>
           </div>
         </Card>
@@ -174,10 +174,10 @@ export default function GoalsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-primary-900 mb-2">
-                  Goal Created Successfully! 🎉
+                  Meta Criada com Sucesso! 🎉
                 </h3>
                 <p className="text-primary-700">
-                  Ready to create your action plan? Let Mentor.ai break down your goal into milestones and daily micro-actions.
+                  Pronto para criar seu plano de ação? Deixe o Mentor.ai dividir sua meta em marcos e micro-ações diárias.
                 </p>
               </div>
               <div className="flex gap-3">
@@ -185,12 +185,12 @@ export default function GoalsPage() {
                   variant="outline"
                   onClick={() => setNewlyCreatedGoalId(null)}
                 >
-                  Skip for Now
+                  Pular por Agora
                 </Button>
                 <Button
                   onClick={() => handleGeneratePlan(newlyCreatedGoalId)}
                 >
-                  Generate Plan with Mentor
+                  Gerar Plano com Mentor
                 </Button>
               </div>
             </div>

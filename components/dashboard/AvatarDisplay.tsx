@@ -6,6 +6,15 @@ import { useUser } from '@/hooks/useUser'
 import { Loader2 } from 'lucide-react'
 import { AnimatedAvatar } from '@/components/animations/AnimatedAvatar'
 
+// Map stage names to display names in Portuguese
+const stageNames: Record<string, string> = {
+  seed: 'Semente',
+  sprout: 'Brotinho',
+  sapling: 'Muda',
+  tree: 'Árvore',
+  oak: 'Carvalho',
+}
+
 export function AvatarDisplay() {
   const [avatarLevel, setAvatarLevel] = useState(1)
   const [avatarStage, setAvatarStage] = useState('seed')
@@ -96,8 +105,8 @@ export function AvatarDisplay() {
         showParticles={true}
         intensity={1}
       />
-      <h3 className="text-xl font-semibold text-gray-100 capitalize mb-2 mt-4">{avatarStage}</h3>
-      <p className="text-sm text-gray-400 mb-4">Level {avatarLevel}</p>
+      <h3 className="text-xl font-semibold text-gray-100 mb-2 mt-4">{stageNames[avatarStage] || avatarStage}</h3>
+      <p className="text-sm text-gray-400 mb-4">Nível {avatarLevel}</p>
       {pointsToNext > 0 ? (
         <>
           <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
@@ -106,10 +115,10 @@ export function AvatarDisplay() {
               style={{ width: `${Math.min(100, progressPercentage)}%` }}
             />
           </div>
-          <p className="text-xs text-gray-500">{pointsToNext} points to next level</p>
+          <p className="text-xs text-gray-500">{pointsToNext} pontos para o próximo nível</p>
         </>
       ) : (
-        <p className="text-xs text-green-600 font-medium">Max level reached! 🎉</p>
+        <p className="text-xs text-green-600 font-medium">Nível máximo alcançado! 🎉</p>
       )}
     </div>
   )

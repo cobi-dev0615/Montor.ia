@@ -35,9 +35,9 @@ export function RegisterForm() {
     strong: 'text-green-400',
   }
   const strengthText = {
-    weak: 'Weak',
-    medium: 'Medium',
-    strong: 'Strong',
+    weak: 'Fraco',
+    medium: 'Médio',
+    strong: 'Forte',
   }
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -45,12 +45,12 @@ export function RegisterForm() {
     setError(null)
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+      setError('A senha deve ter pelo menos 6 caracteres')
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError('As senhas não coincidem')
       return
     }
 
@@ -79,7 +79,7 @@ export function RegisterForm() {
 
       // Step 2: Immediately use the user ID from signUp response
       if (!data.user) {
-        setError('Failed to create user account')
+        setError('Falha ao criar conta de usuário')
         setLoading(false)
         return
       }
@@ -88,7 +88,7 @@ export function RegisterForm() {
       const userEmail = data.user.email
 
       if (!userEmail) {
-        setError('Email is required')
+        setError('Email é obrigatório')
         setLoading(false)
         return
       }
@@ -116,7 +116,7 @@ export function RegisterForm() {
         } else {
           // Other database errors - show to user
           console.error('Error creating user profile:', profileError)
-          setError(`Failed to create profile: ${profileError.message}`)
+          setError(`Falha ao criar perfil: ${profileError.message}`)
           setLoading(false)
           return
         }
@@ -136,7 +136,7 @@ export function RegisterForm() {
       router.refresh()
     } catch (err) {
       console.error('Registration error:', err)
-      setError('An unexpected error occurred. Please try again.')
+      setError('Ocorreu um erro inesperado. Por favor, tente novamente.')
       setLoading(false)
     }
   }

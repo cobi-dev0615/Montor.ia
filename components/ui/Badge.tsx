@@ -13,6 +13,16 @@ export function Badge({ children, variant = 'default' }: BadgeProps) {
     default: 'bg-gray-100 text-gray-800',
   }
 
+  const statusLabels: Record<string, string> = {
+    active: 'Ativa',
+    completed: 'Concluída',
+    paused: 'Pausada',
+  }
+
+  const displayText = typeof children === 'string' && statusLabels[children.toLowerCase()] 
+    ? statusLabels[children.toLowerCase()] 
+    : children
+
   return (
     <span
       className={cn(
@@ -20,7 +30,7 @@ export function Badge({ children, variant = 'default' }: BadgeProps) {
         variants[variant]
       )}
     >
-      {children}
+      {displayText}
     </span>
   )
 }

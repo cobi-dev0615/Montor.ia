@@ -11,12 +11,12 @@ import { cn } from '@/lib/utils'
 
 const adminNavItems = [
   {
-    name: 'Dashboard',
+    name: 'Painel',
     href: '/admin/dashboard',
     icon: LayoutDashboard,
   },
   {
-    name: 'User Management',
+    name: 'Gerenciamento de Usuários',
     href: '/admin/users',
     icon: Users,
   },
@@ -55,12 +55,12 @@ export function AdminNavbar() {
           {/* Logo and Back Button */}
           <div className="flex items-center gap-4">
             <Link href="/admin/dashboard" className="flex items-center">
-              <h1 className="text-xl font-bold holographic-text neon-glow">Admin Panel</h1>
+              <h1 className="text-xl font-bold holographic-text neon-glow">Painel Admin</h1>
             </Link>
             <Link href="/dashboard">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Back to Dashboard</span>
+                <span className="hidden sm:inline">Voltar ao Dashboard</span>
               </Button>
             </Link>
           </div>
@@ -98,7 +98,7 @@ export function AdminNavbar() {
             )}
             <Button variant="outline" size="sm" onClick={signOut}>
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline ml-2">Sign Out</span>
+              <span className="hidden sm:inline ml-2">Sair</span>
             </Button>
           </div>
         </div>

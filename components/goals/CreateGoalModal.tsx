@@ -39,7 +39,7 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to create goal')
+        throw new Error(data.error || 'Falha ao criar meta')
       }
 
       const data = await response.json()
@@ -57,7 +57,7 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
       }
     } catch (err) {
       console.error('Error creating goal:', err)
-      setError(err instanceof Error ? err.message : 'Failed to create goal')
+      setError(err instanceof Error ? err.message : 'Falha ao criar meta')
     } finally {
       setLoading(false)
     }
@@ -69,7 +69,7 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
     <Modal onClose={onClose}>
       <div className="glass-card rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[rgba(0,212,255,0.3)] shadow-[0_0_40px_rgba(0,212,255,0.3)]">
         <div className="flex justify-between items-center p-6 border-b border-[rgba(0,212,255,0.3)]">
-          <h2 className="text-2xl font-bold text-[#00d4ff] neon-glow">Create New Goal</h2>
+          <h2 className="text-2xl font-bold text-[#00d4ff] neon-glow">Criar Nova Meta</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-300 transition-colors"
@@ -87,12 +87,12 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
 
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-              Goal Title *
+              Título da Meta *
             </label>
             <Input
               id="title"
               type="text"
-              placeholder="e.g., Master Public Speaking"
+              placeholder="ex: Dominar Oratória Pública"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -102,13 +102,13 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
 
           <div>
             <label htmlFor="mainGoal" className="block text-sm font-medium text-gray-300 mb-2">
-              Your One Thing *
+              Sua Única Coisa *
             </label>
             <textarea
               id="mainGoal"
               rows={5}
               className="w-full px-4 py-2 border border-[rgba(0,212,255,0.3)] bg-[rgba(0,0,0,0.4)] text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00d4ff] focus:border-transparent focus:shadow-[0_0_15px_rgba(0,212,255,0.3)] resize-none backdrop-blur-sm transition-all duration-300"
-              placeholder="Describe the goal that gives meaning to your life, career, and routine..."
+              placeholder="Descreva a meta que dá sentido à sua vida, carreira e rotina..."
               value={mainGoal}
               onChange={(e) => setMainGoal(e.target.value)}
               required
@@ -117,13 +117,13 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
 
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
-              Description (Optional)
+              Descrição (Opcional)
             </label>
             <textarea
               id="description"
               rows={3}
               className="w-full px-4 py-2 border border-[rgba(0,212,255,0.3)] bg-[rgba(0,0,0,0.4)] text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00d4ff] focus:border-transparent focus:shadow-[0_0_15px_rgba(0,212,255,0.3)] resize-none backdrop-blur-sm transition-all duration-300"
-              placeholder="Additional context about your goal..."
+              placeholder="Contexto adicional sobre sua meta..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -131,10 +131,10 @@ export function CreateGoalModal({ isOpen, onClose, onSuccess }: CreateGoalModalP
 
           <div className="flex justify-end gap-4 pt-4 border-t border-[rgba(0,212,255,0.3)]">
             <Button variant="outline" type="button" onClick={onClose}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" loading={loading} disabled={loading}>
-              Create Goal
+              Criar Meta
             </Button>
           </div>
         </form>

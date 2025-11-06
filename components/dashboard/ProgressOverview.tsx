@@ -59,11 +59,11 @@ export function ProgressOverview() {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4">Overall Progress</h3>
+      <h3 className="text-lg font-semibold mb-4 text-gray-100">Progresso Geral</h3>
       <div className="space-y-4">
         <div>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-400">Journey Completion</span>
+            <span className="text-sm text-gray-400">Conclusão da Jornada</span>
             <span className="text-sm font-medium text-gray-100">{overallProgress}%</span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-3">
@@ -76,7 +76,7 @@ export function ProgressOverview() {
         
         {goalsProgress.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs text-gray-400 font-medium">By Goal:</p>
+            <p className="text-xs text-gray-400 font-medium">Por Meta:</p>
             {goalsProgress.slice(0, 3).map((goal, index) => (
               <div key={index} className="space-y-1">
                 <div className="flex justify-between items-center">
@@ -92,13 +92,13 @@ export function ProgressOverview() {
               </div>
             ))}
             {goalsProgress.length > 3 && (
-              <p className="text-xs text-gray-500">+{goalsProgress.length - 3} more goal(s)</p>
+              <p className="text-xs text-gray-500">+{goalsProgress.length - 3} meta(s) adicional(is)</p>
             )}
           </div>
         )}
         
         <p className="text-xs text-gray-500 mt-2">
-          Keep going! Consistency is key to growth.
+          Continue assim! A consistência é a chave para o crescimento.
         </p>
       </div>
     </div>

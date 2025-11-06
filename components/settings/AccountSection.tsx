@@ -22,12 +22,12 @@ export function AccountSection() {
 
   const handleChangePassword = async () => {
     if (!newPassword || newPassword.length < 6) {
-      showNotification('New password must be at least 6 characters long', 'error')
+      showNotification('A nova senha deve ter pelo menos 6 caracteres', 'error')
       return
     }
 
     if (newPassword !== confirmPassword) {
-      showNotification('New passwords do not match', 'error')
+      showNotification('As novas senhas não coincidem', 'error')
       return
     }
 
@@ -43,14 +43,14 @@ export function AccountSection() {
         throw updateError
       }
 
-      showNotification('Password updated successfully', 'success')
+      showNotification('Senha atualizada com sucesso', 'success')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err) {
       console.error('Error changing password:', err)
       showNotification(
-        err instanceof Error ? err.message : 'Failed to change password',
+        err instanceof Error ? err.message : 'Falha ao alterar senha',
         'error'
       )
     } finally {
@@ -65,10 +65,10 @@ export function AccountSection() {
     }
 
     const confirmText = prompt(
-      'This action cannot be undone. Type "DELETE" to confirm account deletion:'
+      'Esta ação não pode ser desfeita. Digite "EXCLUIR" para confirmar a exclusão da conta:'
     )
 
-    if (confirmText !== 'DELETE') {
+    if (confirmText !== 'EXCLUIR') {
       setShowDeleteConfirm(false)
       return
     }
@@ -78,7 +78,7 @@ export function AccountSection() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        throw new Error('User not found')
+        throw new Error('Usuário não encontrado')
       }
 
       // Soft delete user data (mark as deleted instead of hard delete)
@@ -91,7 +91,7 @@ export function AccountSection() {
         throw updateError
       }
 
-      showNotification('Account deleted successfully', 'success')
+      showNotification('Conta excluída com sucesso', 'success')
 
       // Sign out user
       await supabase.auth.signOut()
@@ -101,7 +101,7 @@ export function AccountSection() {
     } catch (err) {
       console.error('Error deleting account:', err)
       showNotification(
-        err instanceof Error ? err.message : 'Failed to delete account',
+        err instanceof Error ? err.message : 'Falha ao excluir conta',
         'error'
       )
       setDeleteLoading(false)
@@ -111,50 +111,50 @@ export function AccountSection() {
 
   return (
     <Card>
-      <h2 className="text-xl font-semibold text-gray-100 mb-6">Account</h2>
+      <h2 className="text-xl font-semibold text-gray-100 mb-6">Conta</h2>
       <div className="space-y-6">
         {/* Change Password */}
         <div>
-          <h3 className="text-lg font-medium text-gray-100 mb-4">Change Password</h3>
+          <h3 className="text-lg font-medium text-gray-100 mb-4">Alterar Senha</h3>
           <div className="space-y-4">
             <div>
               <label htmlFor="newPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                New Password
+                Nova Senha
               </label>
               <Input
                 id="newPassword"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password (min 6 characters)"
+                placeholder="Digite a nova senha (mín. 6 caracteres)"
               />
             </div>
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                Confirm New Password
+                Confirmar Nova Senha
               </label>
               <Input
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
+                placeholder="Confirme a nova senha"
               />
             </div>
             <Button onClick={handleChangePassword} loading={loading} disabled={loading}>
-              Change Password
+              Alterar Senha
             </Button>
           </div>
         </div>
 
         {/* Delete Account */}
         <div className="pt-6 border-t border-[rgba(239,68,68,0.3)]">
-          <h3 className="text-lg font-medium text-red-400 mb-4">Danger Zone</h3>
+          <h3 className="text-lg font-medium text-red-400 mb-4">Zona de Perigo</h3>
           <div className="bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] rounded-lg p-4">
             <p className="text-sm text-red-300 mb-4">
               {showDeleteConfirm
-                ? 'Are you absolutely sure? This will permanently delete your account and all associated data. This action cannot be undone.'
-                : 'Once you delete your account, there is no going back. Please be certain.'}
+                ? 'Tem certeza absoluta? Isso excluirá permanentemente sua conta e todos os dados associados. Esta ação não pode ser desfeita.'
+                : 'Depois de excluir sua conta, não há volta. Por favor, tenha certeza.'}
             </p>
             <Button
               variant="outline"
@@ -163,7 +163,7 @@ export function AccountSection() {
               loading={deleteLoading}
               disabled={deleteLoading}
             >
-              {showDeleteConfirm ? 'Confirm Deletion' : 'Delete My Account'}
+              {showDeleteConfirm ? 'Confirmar Exclusão' : 'Excluir Minha Conta'}
             </Button>
             {showDeleteConfirm && (
               <Button
@@ -172,7 +172,7 @@ export function AccountSection() {
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={deleteLoading}
               >
-                Cancel
+                Cancelar
               </Button>
             )}
           </div>

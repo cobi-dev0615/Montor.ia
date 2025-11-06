@@ -29,7 +29,7 @@ export function LoginForm() {
       if (signInError) {
         // Check if error is due to unverified email
         if (signInError.message.includes('email') && signInError.message.includes('confirm')) {
-          setError('Please verify your email before signing in. Check your inbox for the verification link.')
+          setError('Por favor, verifique seu email antes de entrar. Verifique sua caixa de entrada para o link de verificação.')
           // Optionally redirect to verify-email page
           router.push(`/verify-email?email=${encodeURIComponent(email)}`)
           setLoading(false)
@@ -46,7 +46,7 @@ export function LoginForm() {
         
         // If email is not verified, redirect to verification page
         if (user && !user.email_confirmed_at) {
-          setError('Please verify your email before signing in.')
+          setError('Por favor, verifique seu email antes de entrar.')
           router.push(`/verify-email?email=${encodeURIComponent(email)}`)
           setLoading(false)
           return
@@ -57,7 +57,7 @@ export function LoginForm() {
         router.refresh()
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      setError('Ocorreu um erro inesperado')
       setLoading(false)
     }
   }

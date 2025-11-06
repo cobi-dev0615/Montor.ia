@@ -59,9 +59,9 @@ export function ActiveGoalsProgress() {
   if (goals.length === 0) {
     return (
       <div className="text-center py-8 text-gray-400">
-        <p className="text-sm">No active goals yet.</p>
+        <p className="text-sm">Ainda não há metas ativas.</p>
         <Link href="/goals" className="text-[#00d4ff] hover:text-[#00ffff] hover:underline text-sm mt-2 inline-block">
-          Create your first goal
+          Crie sua primeira meta
         </Link>
       </div>
     )
@@ -81,7 +81,7 @@ export function ActiveGoalsProgress() {
           </div>
           <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-300">Progress</span>
+              <span className="text-gray-300">Progresso</span>
               <span className="text-[#00d4ff] font-medium">{goal.progress}%</span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2">

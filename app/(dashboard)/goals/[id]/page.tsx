@@ -43,7 +43,7 @@ export default function GoalDetailPage({
       const response = await fetch(`/api/goals/${params.id}`)
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to fetch goal')
+        throw new Error(data.error || 'Falha ao buscar meta')
       }
       const data = await response.json()
       setGoal(data.goal)
@@ -52,7 +52,7 @@ export default function GoalDetailPage({
       // and notify us via onMilestonesLoaded callback
     } catch (err) {
       console.error('Error fetching goal:', err)
-      setError(err instanceof Error ? err.message : 'Failed to load goal')
+      setError(err instanceof Error ? err.message : 'Falha ao carregar meta')
     } finally {
       setLoading(false)
     }
@@ -63,7 +63,7 @@ export default function GoalDetailPage({
   }, [params.id])
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this goal? This action cannot be undone.')) {
+    if (!confirm('Tem certeza de que deseja excluir esta meta? Esta ação não pode ser desfeita.')) {
       return
     }
 
@@ -75,13 +75,13 @@ export default function GoalDetailPage({
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to delete goal')
+        throw new Error(data.error || 'Falha ao excluir meta')
       }
 
       router.push('/goals')
     } catch (err) {
       console.error('Error deleting goal:', err)
-      alert(err instanceof Error ? err.message : 'Failed to delete goal')
+      alert(err instanceof Error ? err.message : 'Falha ao excluir meta')
     } finally {
       setIsDeleting(false)
     }
@@ -108,9 +108,9 @@ export default function GoalDetailPage({
     return (
       <Card>
         <div className="p-6 text-center">
-          <p className="text-red-600 mb-4">{error || 'Goal not found'}</p>
+          <p className="text-red-600 mb-4">{error || 'Meta não encontrada'}</p>
           <Link href="/goals">
-            <Button variant="outline">Back to Goals</Button>
+            <Button variant="outline">Voltar para Metas</Button>
           </Link>
         </div>
       </Card>
@@ -124,7 +124,7 @@ export default function GoalDetailPage({
         <Link href="/goals">
           <Button variant="outline" size="sm">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Goals
+            Voltar para Metas
           </Button>
         </Link>
         <div className="flex-1 min-w-0">
@@ -141,7 +141,7 @@ export default function GoalDetailPage({
             onClick={() => setIsEditModalOpen(true)}
           >
             <Edit className="w-4 h-4 mr-2" />
-            Edit
+            Editar
           </Button>
           <Button
             variant="outline"
@@ -151,7 +151,7 @@ export default function GoalDetailPage({
             className="border-red-300 text-red-600 hover:bg-red-50"
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            {isDeleting ? 'Deleting...' : 'Delete'}
+            {isDeleting ? 'Excluindo...' : 'Excluir'}
           </Button>
         </div>
       </div>
@@ -176,10 +176,10 @@ export default function GoalDetailPage({
         <Card>
           <div className="p-6 bg-primary-900 border border-primary-700 rounded-lg text-center">
             <h3 className="text-lg font-semibold text-primary-100 mb-2">
-              Ready to create your action plan?
+              Pronto para criar seu plano de ação?
             </h3>
             <p className="text-primary-200 mb-4">
-              Let Mentor.ai break down your goal into milestones and daily micro-actions.
+              Deixe o Mentor.ai dividir sua meta em marcos e micro-ações diárias.
             </p>
             <Button
               onClick={async () => {
@@ -191,14 +191,14 @@ export default function GoalDetailPage({
 
                   if (!response.ok) {
                     const data = await response.json()
-                    throw new Error(data.error || 'Failed to generate plan')
+                    throw new Error(data.error || 'Falha ao gerar plano')
                   }
 
                   // Refresh the page to show generated plan
                   await fetchGoal()
                 } catch (err) {
                   console.error('Error generating plan:', err)
-                  alert(err instanceof Error ? err.message : 'Failed to generate plan')
+                  alert(err instanceof Error ? err.message : 'Falha ao gerar plano')
                 } finally {
                   setIsGenerating(false)
                 }
@@ -206,7 +206,7 @@ export default function GoalDetailPage({
               loading={isGenerating}
               disabled={isGenerating}
             >
-              {isGenerating ? 'Generating Plan...' : 'Generate Plan with Mentor'}
+              {isGenerating ? 'Gerando Plano...' : 'Gerar Plano com Mentor'}
             </Button>
           </div>
         </Card>

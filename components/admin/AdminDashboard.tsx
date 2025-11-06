@@ -100,7 +100,7 @@ export function AdminDashboard() {
 
   const statCards = [
     {
-      title: 'Total Users',
+      title: 'Total de Usuários',
       value: stats.totalUsers.toString(),
       icon: Users,
       color: 'text-[#00d4ff]',
@@ -108,7 +108,7 @@ export function AdminDashboard() {
       borderColor: 'border-[rgba(0,212,255,0.3)]',
     },
     {
-      title: 'Active Users (30 days)',
+      title: 'Usuários Ativos (30 dias)',
       value: stats.activeUsers.toString(),
       icon: Activity,
       color: 'text-green-400',
@@ -116,7 +116,7 @@ export function AdminDashboard() {
       borderColor: 'border-[rgba(34,197,94,0.3)]',
     },
     {
-      title: 'Total Goals',
+      title: 'Total de Metas',
       value: stats.totalGoals.toString(),
       icon: Target,
       color: 'text-[#ff6b35]',
@@ -124,7 +124,7 @@ export function AdminDashboard() {
       borderColor: 'border-[rgba(255,107,53,0.3)]',
     },
     {
-      title: 'Total Messages',
+      title: 'Total de Mensagens',
       value: stats.totalMessages.toString(),
       icon: MessageSquare,
       color: 'text-[#00d4ff]',
@@ -132,7 +132,7 @@ export function AdminDashboard() {
       borderColor: 'border-[rgba(0,212,255,0.3)]',
     },
     {
-      title: 'New Users (This Month)',
+      title: 'Novos Usuários (Este Mês)',
       value: stats.newUsersThisMonth.toString(),
       icon: Calendar,
       color: 'text-[#00d4ff]',
@@ -140,7 +140,7 @@ export function AdminDashboard() {
       borderColor: 'border-[rgba(0,212,255,0.3)]',
     },
     {
-      title: 'Growth Rate',
+      title: 'Taxa de Crescimento',
       value: `${stats.growthPercentage >= 0 ? '+' : ''}${stats.growthPercentage}%`,
       icon: TrendingUp,
       color: stats.growthPercentage >= 0 ? 'text-green-400' : 'text-red-400',
@@ -153,8 +153,8 @@ export function AdminDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-100">Admin Dashboard</h1>
-        <p className="text-gray-400 mt-1">Platform overview and statistics</p>
+        <h1 className="text-3xl font-bold text-gray-100">Painel Administrativo</h1>
+        <p className="text-gray-400 mt-1">Visão geral e estatísticas da plataforma</p>
       </div>
 
       {/* Stats Grid */}
@@ -179,19 +179,19 @@ export function AdminDashboard() {
 
       {/* Quick Actions */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold text-gray-100 mb-4">Quick Actions</h2>
+        <h2 className="text-xl font-semibold text-gray-100 mb-4">Ações Rápidas</h2>
         <div className="flex flex-wrap gap-4">
           <a
             href="/admin/users"
             className="px-4 py-2 bg-gradient-to-r from-[#00d4ff] to-[#0099ff] text-white rounded-lg hover:shadow-[0_0_20px_rgba(0,212,255,0.5)] transition-all"
           >
-            View All Users
+            Ver Todos os Usuários
           </a>
           <a
             href="/admin/users"
             className="px-4 py-2 bg-[rgba(255,107,53,0.2)] text-[#ff6b35] border border-[rgba(255,107,53,0.5)] rounded-lg hover:bg-[rgba(255,107,53,0.3)] hover:shadow-[0_0_15px_rgba(255,107,53,0.4)] transition-all"
           >
-            Manage Users
+            Gerenciar Usuários
           </a>
         </div>
       </Card>

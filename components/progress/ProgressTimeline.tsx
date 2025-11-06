@@ -129,13 +129,13 @@ export function ProgressTimeline() {
 
   const getProgressDescription = (log: ProgressLog): string => {
     if (log.progress_type === 'action' && log.actions?.title) {
-      return `Completed action: "${log.actions.title}"`
+      return `Ação concluída: "${log.actions.title}"`
     } else if (log.progress_type === 'milestone' && log.milestones?.title) {
-      return `Completed milestone: "${log.milestones.title}"`
+      return `Marco concluído: "${log.milestones.title}"`
     } else if (log.progress_type === 'goal' && log.goals?.title) {
-      return `Completed goal: "${log.goals.title}"`
+      return `Meta concluída: "${log.goals.title}"`
     }
-    return `Completed ${log.progress_type}`
+    return `${log.progress_type} concluído`
   }
 
   const getProgressIcon = (type: string) => {
@@ -160,7 +160,7 @@ export function ProgressTimeline() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-100">Progress History</h2>
+        <h2 className="text-xl font-semibold text-gray-100">Histórico de Progresso</h2>
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => {
@@ -173,7 +173,7 @@ export function ProgressTimeline() {
                 : 'text-gray-300 hover:bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.2)]'
             }`}
           >
-            All
+            Todos
           </button>
           <button
             onClick={() => {
@@ -186,7 +186,7 @@ export function ProgressTimeline() {
                 : 'text-gray-300 hover:bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.2)]'
             }`}
           >
-            This Week
+            Esta Semana
           </button>
           <button
             onClick={() => {
@@ -199,7 +199,7 @@ export function ProgressTimeline() {
                 : 'text-gray-300 hover:bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.2)]'
             }`}
           >
-            This Month
+            Este Mês
           </button>
           {availableGoals.length > 0 && (
             <select
@@ -210,7 +210,7 @@ export function ProgressTimeline() {
               }}
               className="text-sm px-3 py-1 rounded-lg border border-[rgba(0,212,255,0.3)] text-gray-300 bg-[rgba(0,0,0,0.4)] hover:bg-[rgba(0,212,255,0.1)] focus:outline-none focus:ring-2 focus:ring-[#00d4ff] backdrop-blur-sm"
             >
-              <option value="">By Goal</option>
+              <option value="">Por Meta</option>
               {availableGoals.map((goal) => (
                 <option key={goal.id} value={goal.id} className="bg-gray-800">
                   {goal.title}
@@ -223,8 +223,8 @@ export function ProgressTimeline() {
 
       {progressLogs.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
-          <p>No progress history yet.</p>
-          <p className="text-sm mt-2">Start completing actions and milestones to see your progress here.</p>
+          <p>Ainda não há histórico de progresso.</p>
+          <p className="text-sm mt-2">Comece a completar ações e marcos para ver seu progresso aqui.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -251,7 +251,7 @@ export function ProgressTimeline() {
                     {format(new Date(log.created_at), 'MMM d, yyyy h:mm a')}
                   </span>
                   <span className="text-xs text-[#00d4ff] font-semibold">
-                    +{log.points_earned} points
+                    +{log.points_earned} pontos
                   </span>
                 </div>
               </div>

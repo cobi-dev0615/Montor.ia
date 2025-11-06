@@ -27,7 +27,7 @@ export function GoalCard({ goal }: GoalCardProps) {
         <p className="text-sm text-gray-400 mb-4 line-clamp-2">{goal.main_goal}</p>
         <div className="space-y-2">
           <div className="flex justify-between items-center text-xs text-gray-400">
-            <span>Progress</span>
+            <span>Progresso</span>
             <span>{goal.progress}%</span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2">

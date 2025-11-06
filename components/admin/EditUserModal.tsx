@@ -52,14 +52,14 @@ export function EditUserModal({ isOpen, user, onClose, onSuccess }: EditUserModa
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update user')
+        throw new Error(errorData.error || 'Falha ao atualizar usuário')
       }
 
       onSuccess()
       onClose()
     } catch (error) {
       console.error('Error updating user:', error)
-      alert(error instanceof Error ? error.message : 'Failed to update user')
+      alert(error instanceof Error ? error.message : 'Falha ao atualizar usuário')
     } finally {
       setLoading(false)
     }
@@ -71,7 +71,7 @@ export function EditUserModal({ isOpen, user, onClose, onSuccess }: EditUserModa
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div className="glass-card rounded-lg max-w-md w-full mx-4 border border-[rgba(0,212,255,0.3)] shadow-[0_0_40px_rgba(0,212,255,0.3)]">
         <div className="flex items-center justify-between p-6 border-b border-[rgba(0,212,255,0.3)]">
-          <h2 className="text-xl font-semibold text-[#00d4ff] neon-glow">Edit User</h2>
+          <h2 className="text-xl font-semibold text-[#00d4ff] neon-glow">Editar Usuário</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-200 transition-colors"
@@ -92,19 +92,19 @@ export function EditUserModal({ isOpen, user, onClose, onSuccess }: EditUserModa
               disabled
               className="bg-[rgba(0,0,0,0.3)]"
             />
-            <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+            <p className="text-xs text-gray-400 mt-1">O email não pode ser alterado</p>
           </div>
 
           <div>
             <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-2">
-              Full Name
+              Nome Completo
             </label>
             <Input
               id="fullName"
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Enter full name"
+              placeholder="Digite o nome completo"
             />
           </div>
 
@@ -117,7 +117,7 @@ export function EditUserModal({ isOpen, user, onClose, onSuccess }: EditUserModa
               className="w-4 h-4 text-[#00d4ff] bg-[rgba(0,0,0,0.4)] border-[rgba(0,212,255,0.3)] rounded focus:ring-[#00d4ff] focus:ring-2"
             />
             <label htmlFor="isAdmin" className="text-sm font-medium text-gray-300">
-              Admin Status
+              Status de Admin
             </label>
           </div>
 
@@ -129,10 +129,10 @@ export function EditUserModal({ isOpen, user, onClose, onSuccess }: EditUserModa
               disabled={loading}
               className="flex-1"
             >
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" loading={loading} disabled={loading} className="flex-1">
-              Save Changes
+              Salvar Alterações
             </Button>
           </div>
         </form>

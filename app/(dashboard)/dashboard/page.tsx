@@ -11,6 +11,15 @@ import { useUser } from '@/hooks/useUser'
 import { createSupabaseClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
 
+// Map stage names to display names in Portuguese
+const stageNames: Record<string, string> = {
+  seed: 'Semente',
+  sprout: 'Brotinho',
+  sapling: 'Muda',
+  tree: 'Árvore',
+  oak: 'Carvalho',
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState({
     activeGoals: 0,
@@ -37,7 +46,7 @@ export default function DashboardPage() {
           .single()
 
         if (userData) {
-          setUserName(userData.full_name || 'there')
+          setUserName(userData.full_name || 'usuário')
           setStats({
             activeGoals: 0, // Will be updated from goals fetch
             progressPoints: userData.total_progress || 0,
@@ -76,31 +85,31 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-[#00d4ff] neon-glow">Welcome back, {userName}!</h1>
-        <p className="text-gray-300 mt-2">Here's your overview.</p>
+        <h1 className="text-3xl font-bold text-[#00d4ff] neon-glow">Bem-vindo de volta, {userName}!</h1>
+        <p className="text-gray-300 mt-2">Aqui está seu resumo.</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Active Goals"
+          title="Metas Ativas"
           value={stats.activeGoals.toString()}
           icon={<Target className="w-6 h-6" />}
         />
         <StatsCard
-          title="Progress Points"
+          title="Pontos de Progresso"
           value={stats.progressPoints.toString()}
           icon={<TrendingUp className="w-6 h-6" />}
         />
         <StatsCard
-          title="Consistency Streak"
-          value={`${stats.consistencyStreak} days`}
+          title="Sequência de Consistência"
+          value={`${stats.consistencyStreak} dias`}
           icon={<Flame className="w-6 h-6" />}
         />
         <StatsCard
-          title="Avatar Level"
-          value={`Level ${stats.avatarLevel}`}
-          subValue={stats.avatarStage.charAt(0).toUpperCase() + stats.avatarStage.slice(1)}
+          title="Nível do Avatar"
+          value={`Nível ${stats.avatarLevel}`}
+          subValue={stageNames[stats.avatarStage] || stats.avatarStage.charAt(0).toUpperCase() + stats.avatarStage.slice(1)}
         />
       </div>
 

@@ -74,28 +74,28 @@ export function UserManagement() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update admin status')
+        throw new Error(errorData.error || 'Falha ao atualizar status de admin')
       }
 
       showNotification(
-        `Admin status ${!currentStatus ? 'granted' : 'removed'} successfully`,
+        `Status de admin ${!currentStatus ? 'concedido' : 'removido'} com sucesso`,
         'success'
       )
       // Refresh users list
       await fetchUsers()
     } catch (error) {
       console.error('Error updating admin status:', error)
-      showNotification(
-        error instanceof Error ? error.message : 'Failed to update admin status',
-        'error'
-      )
+        showNotification(
+          error instanceof Error ? error.message : 'Falha ao atualizar status de admin',
+          'error'
+        )
     } finally {
       setUpdating(null)
     }
   }
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+    if (!confirm('Tem certeza de que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
       return
     }
 
@@ -108,15 +108,15 @@ export function UserManagement() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to delete user')
+        throw new Error(errorData.error || 'Falha ao excluir usuário')
       }
 
-      showNotification('User deleted successfully', 'success')
+      showNotification('Usuário excluído com sucesso', 'success')
       await fetchUsers()
     } catch (error) {
       console.error('Error deleting user:', error)
       showNotification(
-        error instanceof Error ? error.message : 'Failed to delete user',
+        error instanceof Error ? error.message : 'Falha ao excluir usuário',
         'error'
       )
     } finally {
@@ -125,7 +125,7 @@ export function UserManagement() {
   }
 
   const handleEditSuccess = () => {
-    showNotification('User updated successfully', 'success')
+    showNotification('Usuário atualizado com sucesso', 'success')
     fetchUsers()
   }
 
@@ -147,8 +147,8 @@ export function UserManagement() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-100">User Management</h1>
-        <p className="text-gray-400 mt-1">Manage users and admin access</p>
+        <h1 className="text-3xl font-bold text-gray-100">Gerenciamento de Usuários</h1>
+        <p className="text-gray-400 mt-1">Gerencie usuários e acesso administrativo</p>
       </div>
 
       {/* Search */}
@@ -157,7 +157,7 @@ export function UserManagement() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <Input
             type="text"
-            placeholder="Search by email or name..."
+            placeholder="Buscar por email ou nome..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -172,19 +172,19 @@ export function UserManagement() {
             <thead className="bg-[rgba(0,212,255,0.1)] border-b border-[rgba(0,212,255,0.3)]">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  User
+                  Usuário
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Registered
+                  Registrado
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Progress
+                  Progresso
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Actions
+                  Ações
                 </th>
               </tr>
             </thead>
@@ -192,7 +192,7 @@ export function UserManagement() {
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-gray-400">
-                    {searchTerm ? 'No users found matching your search.' : 'No users found.'}
+                    {searchTerm ? 'Nenhum usuário encontrado correspondendo à sua busca.' : 'Nenhum usuário encontrado.'}
                   </td>
                 </tr>
               ) : (
@@ -208,7 +208,7 @@ export function UserManagement() {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-100">
-                            {user.full_name || 'No name'}
+                            {user.full_name || 'Sem nome'}
                           </div>
                           <div className="text-sm text-gray-400">{user.email}</div>
                         </div>
@@ -223,7 +223,7 @@ export function UserManagement() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-300">
                         <TrendingUp className="w-4 h-4 mr-2 text-gray-400" />
-                        {user.total_progress} pts · {user.consistency_streak} day streak
+                        {user.total_progress} pts · sequência de {user.consistency_streak} dias
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -234,7 +234,7 @@ export function UserManagement() {
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[rgba(107,114,128,0.2)] text-gray-300 border border-[rgba(107,114,128,0.3)]">
-                          User
+                          Usuário
                         </span>
                       )}
                     </td>
@@ -254,7 +254,7 @@ export function UserManagement() {
                           onClick={() => toggleAdminStatus(user.id, user.is_admin)}
                           disabled={updating === user.id}
                           className="border-[rgba(0,212,255,0.3)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)]"
-                          title={user.is_admin ? 'Remove admin status' : 'Grant admin status'}
+                          title={user.is_admin ? 'Remover status de admin' : 'Conceder status de admin'}
                         >
                           {updating === user.id ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#00d4ff]"></div>
@@ -270,7 +270,7 @@ export function UserManagement() {
                           onClick={() => handleDeleteUser(user.id)}
                           disabled={deletingUserId === user.id}
                           className="border-[rgba(239,68,68,0.3)] text-red-400 hover:bg-[rgba(239,68,68,0.1)]"
-                          title="Delete user"
+                          title="Excluir usuário"
                         >
                           {deletingUserId === user.id ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400"></div>
@@ -292,7 +292,7 @@ export function UserManagement() {
       <Card className="p-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-300">
-            Showing {filteredUsers.length} of {users.length} users
+            Mostrando {filteredUsers.length} de {users.length} usuários
           </span>
           <span className="text-gray-300">
             {users.filter((u) => u.is_admin).length} admin{users.filter((u) => u.is_admin).length !== 1 ? 's' : ''}

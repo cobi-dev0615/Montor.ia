@@ -18,10 +18,10 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/goals', label: 'Goals', icon: Target },
+  { href: '/goals', label: 'Metas', icon: Target },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
-  { href: '/progress', label: 'Progress', icon: TrendingUp },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/progress', label: 'Progresso', icon: TrendingUp },
+  { href: '/settings', label: 'Configurações', icon: Settings },
 ]
 
 export function Navbar() {
@@ -61,7 +61,7 @@ export function Navbar() {
 
   const allNavItems = [
     ...navItems,
-    ...(isAdmin ? [{ href: '/admin/dashboard', label: 'Admin', icon: Shield }] : []),
+    ...(isAdmin ? [{ href: '/admin/dashboard', label: 'Administração', icon: Shield }] : []),
   ]
 
   return (
@@ -106,7 +106,7 @@ export function Navbar() {
             )}
             <Button variant="outline" size="sm" onClick={signOut}>
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline ml-2">Sign Out</span>
+              <span className="hidden sm:inline ml-2">Sair</span>
             </Button>
           </div>
         </div>
