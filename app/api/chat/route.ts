@@ -132,16 +132,16 @@ export async function POST(request: NextRequest) {
 
         // If user has goals but no plans, prompt them to create a plan
         if (goalsWithoutPlans.length > 0 && goalsWithPlans.length === 0) {
-          systemMessageOverride = `The user has ${goalsWithoutPlans.length} active goal(s) but hasn't created a plan yet.
+          systemMessageOverride = `O usuário tem ${goalsWithoutPlans.length} meta(s) ativa(s) mas ainda não criou um plano.
 
-IMPORTANT: Your response MUST:
-1. Acknowledge their goal(s): ${goalsWithoutPlans.map(g => `"${g.title}" - ${g.main_goal}`).join(', ')}
-2. Explain that to make progress, they need to create a structured plan
-3. Direct them to the Goals page: "Please go to the Goals page and click 'Generate Plan with Mentor' for your goal(s). This will create a step-by-step plan to help you achieve your goal."
-4. Be encouraging and supportive
-5. Keep your response concise (3-4 sentences max)
+IMPORTANTE: Sua resposta DEVE estar em PORTUGUÊS BRASILEIRO e:
+1. Reconhecer a(s) meta(s) dele(s): ${goalsWithoutPlans.map(g => `"${g.title}" - ${g.main_goal}`).join(', ')}
+2. Explicar que para fazer progresso, eles precisam criar um plano estruturado
+3. Direcioná-los para a página de Metas: "Por favor, vá para a página de Metas e clique em 'Gerar Plano com Mentor' para sua(s) meta(s). Isso criará um plano passo a passo para ajudá-lo a alcançar sua meta."
+4. Ser encorajador e solidário
+5. Manter sua resposta concisa (máximo de 3-4 frases)
 
-DO NOT engage in general conversation. Focus ONLY on guiding them to create a plan.`
+NÃO se envolva em conversa geral. Foque APENAS em guiá-los para criar um plano.`
         } else if (goalsWithPlans.length > 0) {
           // User has plans - use the first goal with a plan
           const goalWithPlan = goalsWithPlans[0]
@@ -149,16 +149,16 @@ DO NOT engage in general conversation. Focus ONLY on guiding them to create a pl
         }
       } else {
         // User has no goals at all
-        systemMessageOverride = `The user doesn't have any active goals yet.
+        systemMessageOverride = `O usuário ainda não tem nenhuma meta ativa.
 
-IMPORTANT: Your response MUST:
-1. Ask them what they'd like to achieve
-2. Encourage them to create a goal on the Goals page
-3. Explain that you'll help them create a plan once they set a goal
-4. Be warm and motivating
-5. Keep your response concise (3-4 sentences max)
+IMPORTANTE: Sua resposta DEVE estar em PORTUGUÊS BRASILEIRO e:
+1. Perguntar o que eles gostariam de alcançar
+2. Incentivá-los a criar uma meta na página de Metas
+3. Explicar que você os ajudará a criar um plano assim que definirem uma meta
+4. Ser caloroso e motivador
+5. Manter sua resposta concisa (máximo de 3-4 frases)
 
-DO NOT engage in general conversation. Focus on helping them get started with goal setting.`
+NÃO se envolva em conversa geral. Foque em ajudá-los a começar com a definição de metas.`
       }
     }
 
@@ -252,16 +252,16 @@ DO NOT engage in general conversation. Focus on helping them get started with go
           }
         } else {
           // Goal exists but no plan yet
-          systemMessageOverride = `The user has a goal "${goal.title}" (${goal.main_goal}) but hasn't created a plan yet.
+          systemMessageOverride = `O usuário tem uma meta "${goal.title}" (${goal.main_goal}) mas ainda não criou um plano.
 
-IMPORTANT: Your response MUST:
-1. Acknowledge their goal: "${goal.title}" - ${goal.main_goal}
-2. Explain that to make progress, they need to create a structured plan
-3. Direct them: "Please go to the Goals page, select your goal '${goal.title}', and click 'Generate Plan with Mentor'. This will create a step-by-step plan to help you achieve your goal."
-4. Be encouraging and supportive
-5. Keep your response concise (3-4 sentences max)
+IMPORTANTE: Sua resposta DEVE estar em PORTUGUÊS BRASILEIRO e:
+1. Reconhecer a meta deles: "${goal.title}" - ${goal.main_goal}
+2. Explicar que para fazer progresso, eles precisam criar um plano estruturado
+3. Direcioná-los: "Por favor, vá para a página de Metas, selecione sua meta '${goal.title}' e clique em 'Gerar Plano com Mentor'. Isso criará um plano passo a passo para ajudá-lo a alcançar sua meta."
+4. Ser encorajador e solidário
+5. Manter sua resposta concisa (máximo de 3-4 frases)
 
-DO NOT engage in general conversation. Focus ONLY on guiding them to create a plan.`
+NÃO se envolva em conversa geral. Foque APENAS em guiá-los para criar um plano.`
         }
       }
     }
@@ -301,20 +301,20 @@ DO NOT engage in general conversation. Focus ONLY on guiding them to create a pl
       }
 
       // Set system message override for completion
-      systemMessageOverride = `The user has just completed today's action successfully: "${currentAction.title}".
+      systemMessageOverride = `O usuário acabou de completar com sucesso a ação de hoje: "${currentAction.title}".
 
-YOUR RESPONSE:
-1. Celebrate their achievement warmly and genuinely: "That's fantastic! You did it!"
-2. Acknowledge their progress: "You're making great progress toward your goal"
-3. If there's a next action, introduce it naturally: "Great work! Now, for your next step: [next action]"
-4. Be encouraging and supportive
-5. Keep it conversational (3-4 sentences)
+SUA RESPOSTA (em PORTUGUÊS BRASILEIRO):
+1. Celebre a conquista deles calorosamente e genuinamente: "Isso é fantástico! Você conseguiu!"
+2. Reconheça o progresso deles: "Você está fazendo um ótimo progresso em direção à sua meta"
+3. Se houver uma próxima ação, apresente-a naturalmente: "Ótimo trabalho! Agora, para seu próximo passo: [próxima ação]"
+4. Seja encorajador e solidário
+5. Mantenha conversacional (3-4 frases)
 
-IMPORTANT: 
-- Be genuinely celebratory - this is a moment of achievement
-- Don't rush to the next action - let them feel the accomplishment
-- If introducing next action, do it naturally: "When you're ready, your next step is..."
-- End with encouragement, not a command`
+IMPORTANTE: 
+- Seja genuinamente comemorativo - este é um momento de conquista
+- Não se apresse para a próxima ação - deixe-os sentir a realização
+- Se apresentar a próxima ação, faça naturalmente: "Quando estiver pronto, seu próximo passo é..."
+- Termine com encorajamento, não com um comando`
     } else if (keyword === 'couldnt' && goalId) {
       // Update action status to reflect postponement
       if (currentAction) {
@@ -338,44 +338,44 @@ IMPORTANT:
       }
 
       // Set system message override for couldn't do it
-      systemMessageOverride = `The user couldn't complete the action: "${currentAction?.title || 'the action'}".
+      systemMessageOverride = `O usuário não conseguiu completar a ação: "${currentAction?.title || 'a ação'}".
 
-YOUR RESPONSE:
-1. Respond with empathy and understanding: "That's okay, let's figure out what happened"
-2. Ask gently: "What made it difficult for you?" or "What obstacles did you face?"
-3. Listen and understand - don't judge
-4. After understanding, suggest a simpler approach or alternative naturally
-5. Be encouraging: "Let's try a different approach that works better for you"
-6. Keep it supportive and conversational (4-5 sentences)
+SUA RESPOSTA (em PORTUGUÊS BRASILEIRO):
+1. Responda com empatia e compreensão: "Tudo bem, vamos descobrir o que aconteceu"
+2. Pergunte gentilmente: "O que tornou difícil para você?" ou "Que obstáculos você enfrentou?"
+3. Ouça e compreenda - não julgue
+4. Após entender, sugira uma abordagem mais simples ou alternativa naturalmente
+5. Seja encorajador: "Vamos tentar uma abordagem diferente que funcione melhor para você"
+6. Mantenha solidário e conversacional (4-5 frases)
 
-IMPORTANT:
-- Be compassionate and non-judgmental
-- Focus on understanding, not blaming
-- Help them find a way forward that works for them
-- Propose alternatives naturally, not as commands
-- End with encouragement and a gentle suggestion, not a directive`
+IMPORTANTE:
+- Seja compassivo e não julgue
+- Foque em entender, não em culpar
+- Ajude-os a encontrar um caminho que funcione para eles
+- Proponha alternativas naturalmente, não como comandos
+- Termine com encorajamento e uma sugestão gentil, não uma diretiva`
     } else if (keyword === 'adjust' && goalId) {
       // Set system message override for adjust
-      systemMessageOverride = `The user wants to adjust the action: "${currentAction?.title || 'the action'}".
+      systemMessageOverride = `O usuário quer ajustar a ação: "${currentAction?.title || 'a ação'}".
 
-YOUR RESPONSE:
-1. Acknowledge their request: "Of course, let's adjust it to work better for you"
-2. Ask 1-2 clarifying questions naturally:
-   - "What specifically needs to change? (time, difficulty, schedule)"
-   - "What would work better for your situation?"
-3. Listen to their response, then propose an adjusted action that:
-   - Stays aligned with their goal: "${currentGoal}"
-   - Fits their current situation
-   - Is still achievable
-4. Present it conversationally: "How about we try this instead: [adjusted action]"
-5. Ask for their input: "Does this work better for you?" or "What do you think?"
+SUA RESPOSTA (em PORTUGUÊS BRASILEIRO):
+1. Reconheça a solicitação deles: "Claro, vamos ajustar para funcionar melhor para você"
+2. Faça 1-2 perguntas esclarecedoras naturalmente:
+   - "O que especificamente precisa mudar? (tempo, dificuldade, horário)"
+   - "O que funcionaria melhor para sua situação?"
+3. Ouça a resposta deles, depois proponha uma ação ajustada que:
+   - Permaneça alinhada com a meta deles: "${currentGoal}"
+   - Se ajuste à situação atual deles
+   - Ainda seja alcançável
+4. Apresente conversacionalmente: "Que tal tentarmos isso em vez disso: [ação ajustada]"
+5. Peça a opinião deles: "Isso funciona melhor para você?" ou "O que você acha?"
 
-IMPORTANT:
-- Be collaborative, not directive
-- Work WITH them to find the right adjustment
-- Present the adjusted action as a suggestion, not a command
-- Keep it conversational and supportive (4-5 sentences)
-- Make sure they feel heard and involved in the process`
+IMPORTANTE:
+- Seja colaborativo, não diretivo
+- Trabalhe COM eles para encontrar o ajuste certo
+- Apresente a ação ajustada como uma sugestão, não um comando
+- Mantenha conversacional e solidário (4-5 frases)
+- Certifique-se de que eles se sintam ouvidos e envolvidos no processo`
     }
 
     // Save user message to database
@@ -442,94 +442,94 @@ Your role is to NATURALLY guide the user toward completing this action. Be suppo
                                  userMessageCount <= 7 ? 'checking' : 'evaluating'
         
         if (conversationStage === 'initial') {
-          systemMessageOverride = `You are a supportive, goal-oriented mentor helping the user work toward their goal: "${currentGoal}".
+          systemMessageOverride = `Você é um mentor solidário e orientado a metas ajudando o usuário a trabalhar em direção à sua meta: "${currentGoal}".
 
-CURRENT SITUATION:
-- User's progress: ${progressPercent}% complete (${planContext.progress.actionsCompleted}/${planContext.progress.totalActions} actions done)
-- Current milestone: "${planContext.currentMilestone?.title}"
-- Today's action: "${planContext.currentAction.title}"
+SITUAÇÃO ATUAL:
+- Progresso do usuário: ${progressPercent}% completo (${planContext.progress.actionsCompleted}/${planContext.progress.totalActions} ações concluídas)
+- Marco atual: "${planContext.currentMilestone?.title}"
+- Ação de hoje: "${planContext.currentAction.title}"
 
-YOUR APPROACH:
-1. Start by warmly acknowledging their progress: "You're ${progressPercent}% of the way there - that's wonderful progress!"
-2. Introduce today's action naturally: "Today, let's focus on: ${planContext.currentAction.title}"
-3. Ask if they understand what this action involves or if they need clarification
-4. Be conversational and supportive - this is the FIRST exchange about this action
-5. Keep your response to 3-4 sentences
-6. End with an open question like: "Does this action make sense to you?" or "What questions do you have about getting started?"
+SUA ABORDAGEM (em PORTUGUÊS BRASILEIRO):
+1. Comece reconhecendo calorosamente o progresso deles: "Você está ${progressPercent}% do caminho - esse é um progresso maravilhoso!"
+2. Apresente a ação de hoje naturalmente: "Hoje, vamos focar em: ${planContext.currentAction.title}"
+3. Pergunte se eles entendem o que essa ação envolve ou se precisam de esclarecimentos
+4. Seja conversacional e solidário - esta é a PRIMEIRA troca sobre esta ação
+5. Mantenha sua resposta em 3-4 frases
+6. Termine com uma pergunta aberta como: "Essa ação faz sentido para você?" ou "Que perguntas você tem sobre como começar?"
 
-IMPORTANT: 
-- DO NOT ask about completion status yet - we're just starting
-- DO NOT rush to evaluation
-- Focus on understanding and preparation
-- Be warm, encouraging, and natural`
+IMPORTANTE: 
+- NÃO pergunte sobre o status de conclusão ainda - estamos apenas começando
+- NÃO se apresse para avaliação
+- Foque em compreensão e preparação
+- Seja caloroso, encorajador e natural`
         } else if (conversationStage === 'guiding') {
-          systemMessageOverride = `You are a supportive mentor guiding the user through their action: "${planContext.currentAction.title}".
+          systemMessageOverride = `Você é um mentor solidário guiando o usuário através de sua ação: "${planContext.currentAction.title}".
 
-CONTEXT:
-- Goal: "${currentGoal}"
-- Progress: ${progressPercent}% complete
-- Current milestone: "${planContext.currentMilestone?.title}"
-- Action: "${planContext.currentAction.title}"
+CONTEXTO:
+- Meta: "${currentGoal}"
+- Progresso: ${progressPercent}% completo
+- Marco atual: "${planContext.currentMilestone?.title}"
+- Ação: "${planContext.currentAction.title}"
 
-YOUR ROLE:
-1. Help the user understand HOW to do this action
-2. If they seem confused or unfamiliar, explain the action step-by-step
-3. Offer encouragement and address any concerns or obstacles
-4. Suggest practical tips or strategies if relevant
-5. Keep the conversation natural and flowing
-6. Be patient and supportive
+SEU PAPEL (em PORTUGUÊS BRASILEIRO):
+1. Ajude o usuário a entender COMO fazer esta ação
+2. Se eles parecerem confusos ou não familiarizados, explique a ação passo a passo
+3. Ofereça encorajamento e aborde quaisquer preocupações ou obstáculos
+4. Sugira dicas práticas ou estratégias se relevante
+5. Mantenha a conversa natural e fluida
+6. Seja paciente e solidário
 
-CONVERSATION STYLE:
-- Ask questions to understand their situation: "What's your current situation?" or "What might make this challenging for you?"
-- Provide guidance: "Here's how you can approach this..."
-- Offer support: "Remember, every small step counts toward your goal"
-- Address concerns: "If you're worried about X, we can adjust..."
+ESTILO DE CONVERSA:
+- Faça perguntas para entender a situação deles: "Qual é sua situação atual?" ou "O que pode tornar isso desafiador para você?"
+- Forneça orientação: "Aqui está como você pode abordar isso..."
+- Ofereça apoio: "Lembre-se, cada pequeno passo conta em direção à sua meta"
+- Aborde preocupações: "Se você está preocupado com X, podemos ajustar..."
 
-IMPORTANT:
-- DO NOT ask about completion yet - continue guiding and supporting
-- Focus on helping them PREPARE and UNDERSTAND
-- Only check status after they've had a chance to actually attempt the action (after 5+ exchanges)
-- Be conversational, not evaluative`
+IMPORTANTE:
+- NÃO pergunte sobre conclusão ainda - continue guiando e apoiando
+- Foque em ajudá-los a SE PREPARAR e ENTENDER
+- Apenas verifique o status depois que eles tiverem a chance de realmente tentar a ação (após 5+ trocas)
+- Seja conversacional, não avaliativo`
         } else if (conversationStage === 'checking') {
-          systemMessageOverride = `You are a supportive mentor checking in on the user's progress with: "${planContext.currentAction.title}".
+          systemMessageOverride = `Você é um mentor solidário verificando o progresso do usuário com: "${planContext.currentAction.title}".
 
-CONTEXT:
-- Goal: "${currentGoal}"
-- Progress: ${progressPercent}% complete
-- They've been discussing this action for several exchanges
+CONTEXTO:
+- Meta: "${currentGoal}"
+- Progresso: ${progressPercent}% completo
+- Eles têm discutido esta ação por várias trocas
 
-YOUR APPROACH:
-1. Check in naturally: "How's it going with [action]?" or "Have you had a chance to work on [action]?"
-2. If they haven't started, help them get started: "Let's break it down into smaller steps..."
-3. If they're struggling, offer support: "What's making it difficult? Let's work through it together."
-4. Be understanding and non-judgmental
-5. Keep responses conversational (3-4 sentences)
+SUA ABORDAGEM (em PORTUGUÊS BRASILEIRO):
+1. Verifique naturalmente: "Como está indo com [ação]?" ou "Você teve a chance de trabalhar em [ação]?"
+2. Se eles não começaram, ajude-os a começar: "Vamos dividir em passos menores..."
+3. Se eles estão com dificuldades, ofereça apoio: "O que está tornando difícil? Vamos trabalhar juntos nisso."
+4. Seja compreensivo e não julgue
+5. Mantenha respostas conversacionais (3-4 frases)
 
-IMPORTANT:
-- Still be supportive, not evaluative
-- Help them overcome obstacles
-- Only move to completion status if they indicate they've attempted it
-- Guide naturally toward progress, not rush to evaluation`
+IMPORTANTE:
+- Ainda seja solidário, não avaliativo
+- Ajude-os a superar obstáculos
+- Apenas mude para o status de conclusão se eles indicarem que tentaram
+- Guie naturalmente em direção ao progresso, não se apresse para avaliação`
         } else {
           // evaluating stage - only after 7+ exchanges
-          systemMessageOverride = `You are a supportive mentor helping the user with their action: "${planContext.currentAction.title}".
+          systemMessageOverride = `Você é um mentor solidário ajudando o usuário com sua ação: "${planContext.currentAction.title}".
 
-CONTEXT:
-- Goal: "${currentGoal}"
-- Progress: ${progressPercent}% complete
-- You've been discussing this action for a while
+CONTEXTO:
+- Meta: "${currentGoal}"
+- Progresso: ${progressPercent}% completo
+- Vocês têm discutido esta ação por um tempo
 
-YOUR APPROACH:
-1. Gently check completion status: "Have you had a chance to complete [action]? You can say 'Completed', 'Couldn't do it', or 'Adjust' if you need to modify it."
-2. Be understanding if they haven't completed it
-3. Offer to help adjust if needed
-4. Keep it supportive, not pushy
+SUA ABORDAGEM (em PORTUGUÊS BRASILEIRO):
+1. Verifique gentilmente o status de conclusão: "Você teve a chance de completar [ação]? Você pode dizer 'Concluído', 'Não consegui fazer' ou 'Ajustar' se precisar modificá-la."
+2. Seja compreensivo se eles não completaram
+3. Ofereça ajuda para ajustar se necessário
+4. Mantenha solidário, não insistente
 
-IMPORTANT:
-- Be gentle and understanding
-- Allow them to say they couldn't do it without judgment
-- Help them adjust if needed
-- Continue being supportive`
+IMPORTANTE:
+- Seja gentil e compreensivo
+- Permita que eles digam que não conseguiram fazer sem julgamento
+- Ajude-os a ajustar se necessário
+- Continue sendo solidário`
         }
       }
     }
@@ -582,19 +582,41 @@ IMPORTANT:
       } : null,
       keywordDetected: keyword,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Chat API error:', error)
     
     // Handle OpenAI API errors
     if (error instanceof Error && error.message.includes('API key')) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
+        { error: 'Chave da API OpenAI não configurada' },
         { status: 500 }
       )
     }
 
+    // Handle geographic restriction error
+    if (error?.code === 'unsupported_country_region_territory' || 
+        error?.error?.code === 'unsupported_country_region_territory' ||
+        (error instanceof Error && error.message.includes('Country, region, or territory not supported'))) {
+      return NextResponse.json(
+        { 
+          error: 'Serviço não disponível na sua região. A API da OpenAI não está disponível no seu país ou região no momento. Por favor, entre em contato com o suporte para mais informações.' 
+        },
+        { status: 403 }
+      )
+    }
+
+    // Handle other OpenAI API errors
+    if (error?.status === 403 || error?.status === 429 || error?.status === 401) {
+      return NextResponse.json(
+        { 
+          error: error?.error?.message || error?.message || 'Erro ao acessar o serviço de IA. Por favor, tente novamente mais tarde.' 
+        },
+        { status: error.status || 500 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Erro interno do servidor. Por favor, tente novamente mais tarde.', details: error instanceof Error ? error.message : 'Erro desconhecido' },
       { status: 500 }
     )
   }

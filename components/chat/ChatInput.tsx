@@ -35,7 +35,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
               handleSubmit(e)
             }
           }}
-          placeholder="Type your message..."
+          placeholder="Digite sua mensagem..."
           rows={2}
           disabled={disabled}
           className="flex-1 px-4 py-2 border border-[rgba(0,212,255,0.3)] bg-[rgba(0,0,0,0.4)] text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00d4ff] focus:border-transparent focus:shadow-[0_0_15px_rgba(0,212,255,0.3)] resize-none custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm transition-all duration-300"

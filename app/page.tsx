@@ -65,7 +65,7 @@ export default function Home() {
         <footer className="border-t border-[rgba(0,212,255,0.3)] py-8 px-6">
           <div className="max-w-6xl mx-auto text-center">
             <p className="text-sm text-gray-400">
-              © 2024 Mentor.ai. Todos os direitos reservados.
+              © 2025 Mentor.ai. Todos os direitos reservados.
             </p>
             <p className="text-xs mt-2 text-gray-500">
               Construído com propósito, clareza e virtude.

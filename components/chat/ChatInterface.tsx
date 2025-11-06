@@ -22,6 +22,7 @@ export function ChatInterface() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [progressUpdate, setProgressUpdate] = useState<any>(null)
+  const [userName, setUserName] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const supabase = createSupabaseClient()
 
@@ -37,13 +38,27 @@ export function ChatInterface() {
     }
   }, [])
 
-  // Fetch message history on mount
+  // Fetch user name and message history on mount
   useEffect(() => {
-    const fetchMessages = async () => {
+    const fetchUserData = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
+        // Fetch user name
+        const { data: userData } = await supabase
+          .from('users')
+          .select('full_name')
+          .eq('id', user.id)
+          .single()
+
+        if (userData?.full_name) {
+          setUserName(userData.full_name)
+        } else {
+          setUserName(user.email?.split('@')[0] || 'Usuário')
+        }
+
+        // Fetch messages
         const query = supabase
           .from('messages')
           .select('*')
@@ -70,7 +85,7 @@ export function ChatInterface() {
       }
     }
 
-    fetchMessages()
+    fetchUserData()
   }, [goalId, supabase])
 
   // Auto-scroll to bottom when messages change
@@ -109,7 +124,7 @@ export function ChatInterface() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to send message')
+        throw new Error(errorData.error || 'Falha ao enviar mensagem')
       }
 
       const data = await response.json()
@@ -136,6 +151,21 @@ export function ChatInterface() {
       // Refresh messages from database to get actual IDs
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
+        // Ensure userName is set if not already
+        if (!userName) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('full_name')
+            .eq('id', user.id)
+            .single()
+
+          if (userData?.full_name) {
+            setUserName(userData.full_name)
+          } else {
+            setUserName(user.email?.split('@')[0] || 'Usuário')
+          }
+        }
+
         const query = supabase
           .from('messages')
           .select('*')
@@ -154,7 +184,7 @@ export function ChatInterface() {
       }
     } catch (err) {
       console.error('Error sending message:', err)
-      setError(err instanceof Error ? err.message : 'Failed to send message')
+      setError(err instanceof Error ? err.message : 'Falha ao enviar mensagem')
       // Remove optimistic message on error
       setMessages((prev) => prev.filter((m) => m.id !== userMessage.id))
     } finally {
@@ -173,14 +203,14 @@ export function ChatInterface() {
         )}
         {messages.length === 0 && !loading && (
           <div className="flex items-center justify-center h-full text-gray-400">
-            <p>Start a conversation with your AI mentor...</p>
+            <p>Inicie uma conversa com seu mentor de IA...</p>
           </div>
         )}
-        <MessageList messages={messages} />
+        <MessageList messages={messages} userName={userName} />
         {loading && (
           <div className="flex items-center gap-2 text-gray-500 text-sm mt-4">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
-            <span>Mentor is thinking...</span>
+            <span>Mentor está pensando...</span>
           </div>
         )}
         <div ref={messagesEndRef} />

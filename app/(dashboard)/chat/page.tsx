@@ -62,8 +62,10 @@ export default function ChatPage() {
   }, [goalId, hasCheckedInitialMessage, supabase])
 
   return (
-    <div className="h-full">
-      <ChatInterface />
+    <div className="h-full flex items-center justify-center">
+      <div className="w-full max-w-4xl h-full">
+        <ChatInterface />
+      </div>
     </div>
   )
 }
