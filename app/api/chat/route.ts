@@ -320,18 +320,21 @@ IMPORTANT:
       if (currentAction) {
         // We could mark it as skipped or leave it pending for later
         // For now, we'll leave it pending but log the attempt
-        await supabase
-          .from('progress_logs')
-          .insert({
-            user_id: user.id,
-            action_id: currentAction.id,
-            milestone_id: currentMilestone?.id || null,
-            goal_id: goalId,
-            progress_type: 'action',
-            points_earned: 0, // No points for couldn't do it
-            is_deleted: false,
-          })
-          .catch(err => console.error('Error logging action attempt:', err))
+        try {
+          await supabase
+            .from('progress_logs')
+            .insert({
+              user_id: user.id,
+              action_id: currentAction.id,
+              milestone_id: currentMilestone?.id || null,
+              goal_id: goalId,
+              progress_type: 'action',
+              points_earned: 0, // No points for couldn't do it
+              is_deleted: false,
+            })
+        } catch (err) {
+          console.error('Error logging action attempt:', err)
+        }
       }
 
       // Set system message override for couldn't do it

@@ -15,6 +15,8 @@ export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps) {
   const [step, setStep] = useState<'setup' | 'verify' | 'complete'>('setup')
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [secret, setSecret] = useState<string | null>(null)
+  const [factorId, setFactorId] = useState<string | null>(null)
+  const [challengeId, setChallengeId] = useState<string | null>(null)
   const [verificationCode, setVerificationCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,8 +25,31 @@ export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps) {
   useEffect(() => {
     if (step === 'setup') {
       initialize2FA()
+    } else if (step === 'verify' && factorId && !challengeId) {
+      createChallenge()
     }
-  }, [step])
+  }, [step, factorId, challengeId])
+
+  const createChallenge = async () => {
+    if (!factorId) return
+
+    try {
+      const { data, error: challengeError } = await supabase.auth.mfa.challenge({
+        factorId: factorId,
+      })
+
+      if (challengeError) {
+        setError(challengeError.message || 'Failed to create challenge')
+        return
+      }
+
+      if (data) {
+        setChallengeId(data.id)
+      }
+    } catch (err) {
+      setError('Failed to create challenge. Please try again.')
+    }
+  }
 
   const initialize2FA = async () => {
     setLoading(true)
@@ -42,9 +67,10 @@ export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps) {
         return
       }
 
-      if (data) {
-        setQrCode(data.qr_code || null)
-        setSecret(data.secret || null)
+      if (data && data.totp) {
+        setQrCode(data.totp.qr_code || null)
+        setSecret(data.totp.secret || null)
+        setFactorId(data.id)
         setStep('verify')
       }
     } catch (err) {
@@ -63,8 +89,21 @@ export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps) {
     setError(null)
 
     try {
+      if (!factorId) {
+        setError('Factor ID is missing. Please restart the setup.')
+        setLoading(false)
+        return
+      }
+
+      if (!challengeId) {
+        setError('Challenge ID is missing. Please wait a moment and try again.')
+        setLoading(false)
+        return
+      }
+
       const { data, error: verifyError } = await supabase.auth.mfa.verify({
-        factorId: secret || '',
+        factorId: factorId,
+        challengeId: challengeId,
         code: verificationCode,
       })
 

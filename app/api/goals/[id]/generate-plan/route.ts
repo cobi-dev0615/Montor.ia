@@ -117,7 +117,8 @@ CRITICAL: Return ONLY the JSON object, no additional text, no markdown, no expla
     }
 
     // Parse plan response with better error handling
-    let planData: { plan: Array<{ milestone_title: string; milestone_description: string; order_index: number; micro_actions: Array<{ action_title: string; action_description: string }> }> }
+    type PlanData = { plan: Array<{ milestone_title: string; milestone_description: string; order_index: number; micro_actions: Array<{ action_title: string; action_description: string }> }> }
+    let planData: PlanData
     
     console.log('Raw OpenAI Response:', planResponse)
     
@@ -134,18 +135,21 @@ CRITICAL: Return ONLY the JSON object, no additional text, no markdown, no expla
         jsonString = jsonMatch[0]
       }
       
-      planData = JSON.parse(jsonString)
+      const parsedData: any = JSON.parse(jsonString)
 
       // Handle different response formats
-      if (Array.isArray(planData)) {
+      if (Array.isArray(parsedData)) {
         // If response is directly an array, wrap it
-        planData = { plan: planData }
-      } else if (planData.milestones && Array.isArray(planData.milestones)) {
+        planData = { plan: parsedData }
+      } else if (parsedData.milestones && Array.isArray(parsedData.milestones)) {
         // If response has milestones array instead of plan
-        planData = { plan: planData.milestones }
-      } else if (!planData.plan) {
+        planData = { plan: parsedData.milestones }
+      } else if (parsedData.plan && Array.isArray(parsedData.plan)) {
+        // If response has plan array
+        planData = { plan: parsedData.plan }
+      } else {
         // If plan doesn't exist, try to construct from other fields
-        console.error('Unexpected response format:', planData)
+        console.error('Unexpected response format:', parsedData)
         throw new Error('Response missing plan array')
       }
       

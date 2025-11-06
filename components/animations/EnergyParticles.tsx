@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 interface Particle {
   x: number
   y: number
+  z: number
   vx: number
   vy: number
   vz: number
@@ -63,6 +64,7 @@ export function EnergyParticles({
         particlesRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
+          z: Math.random(),
           vx: (Math.random() - 0.5) * speed,
           vy: (Math.random() - 0.5) * speed,
           vz: (Math.random() - 0.5) * 0.5,
