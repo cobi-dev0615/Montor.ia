@@ -151,39 +151,39 @@ export function AvatarEvolution() {
   }
 
   return (
-    <div className="text-center">
-      <div className="mb-8">
-        <div className="flex justify-center mx-auto mb-4">
+    <div className="text-center space-y-7">
+      <div className="space-y-4.5">
+        <div className="flex justify-center mx-auto">
           <AnimatedAvatar
             stage={avatarStage}
             level={avatarLevel}
-            size="lg"
+            size="md"
             showParticles={true}
-            intensity={1.2}
+            intensity={1}
           />
         </div>
-        <h3 className="text-2xl font-semibold text-gray-100 mb-2">{stageNames[avatarStage] || avatarStage}</h3>
-        <p className="text-gray-400">Nível {avatarLevel}</p>
+        <h3 className="text-base font-medium text-gray-100">{stageNames[avatarStage] || avatarStage}</h3>
+        <p className="text-[11px] text-gray-400">Nível {avatarLevel}</p>
       </div>
 
       {/* Evolution Path */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
+      <div className="space-y-2.5">
+        <div className="flex justify-between items-center gap-2">
           {stages.map((stage, index) => (
             <div key={stage.level} className="flex-1 flex flex-col items-center">
               <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-2 transition-all ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-lg mb-1 transition-all ${
                   stage.level < avatarLevel
                     ? 'bg-green-600'
                     : stage.level === avatarLevel
-                    ? 'bg-primary-600 ring-4 ring-primary-400'
+                    ? 'bg-primary-600 ring ring-primary-400'
                     : 'bg-gray-700 opacity-50'
                 }`}
               >
                 <span>{stage.icon}</span>
               </div>
               <span
-                className={`text-xs font-medium ${
+                className={`text-[10px] font-medium ${
                   stage.level <= avatarLevel ? 'text-gray-100' : 'text-gray-400'
                 }`}
               >
@@ -192,23 +192,17 @@ export function AvatarEvolution() {
             </div>
           ))}
         </div>
-        {pointsToNext > 0 ? (
-          <>
-            <div className="w-full bg-gray-700 rounded-full h-2">
-              <div
-                className="bg-primary-600 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, progressPercentage)}%` }}
-              />
-            </div>
-            <p className="text-sm text-gray-400 mt-2">
-              {pointsToNext} pontos até a próxima evolução
-            </p>
-          </>
-        ) : (
-          <div className="w-full bg-gray-700 rounded-full h-2">
-            <div className="bg-green-600 h-2 rounded-full w-full" />
-          </div>
-        )}
+        <div className="w-full bg-gray-700 rounded-full h-1 overflow-hidden">
+          <div
+            className={`transition-all duration-500 h-full rounded-full ${
+              pointsToNext > 0 ? 'bg-primary-600' : 'bg-green-600'
+            }`}
+            style={{ width: `${Math.min(100, progressPercentage)}%` }}
+          />
+        </div>
+        <p className="text-[10px] text-gray-400">
+          {pointsToNext > 0 ? `${pointsToNext} pontos até a próxima evolução` : 'Nível máximo alcançado'}
+        </p>
       </div>
     </div>
   )

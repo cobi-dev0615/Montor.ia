@@ -2,6 +2,7 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { Navbar } from '@/components/layout/Navbar'
 import { ImmersiveWorld } from '@/components/animations/ImmersiveWorld'
 import { NotificationProvider } from '@/hooks/useNotification'
+import { MentorDock } from '@/components/chat/MentorDock'
 
 export default function DashboardLayout({
   children,
@@ -17,6 +18,7 @@ export default function DashboardLayout({
             <main className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-transparent">
               {children}
             </main>
+            <MentorDock />
           </div>
         </ImmersiveWorld>
       </NotificationProvider>

@@ -53,7 +53,7 @@ function detectKeyword(message: string): 'completed' | 'couldnt' | 'adjust' | nu
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, goalId: goalIdParam } = await request.json()
+    const { message, goalId: goalIdParam, context: pageContext } = await request.json()
     let goalId = goalIdParam
 
     if (!message || typeof message !== 'string') {
@@ -395,13 +395,11 @@ IMPORTANTE:
     }
 
     // Get recent message history (last 10 messages for context)
-    // RLS policy automatically filters out deleted messages (is_deleted = FALSE)
     const { data: recentMessages } = await supabase
       .from('messages')
-      .select('role, content, created_at')
+      .select('role, content, created_at, is_deleted')
       .eq('user_id', user.id)
       .eq('goal_id', goalId || null)
-      .eq('is_deleted', false)
       .order('created_at', { ascending: false })
       .limit(10)
 
@@ -413,7 +411,9 @@ IMPORTANTE:
       .reverse()
       .map((m) => ({ 
         role: m.role as 'user' | 'assistant' | 'system', 
-        content: m.content 
+        content: m.is_deleted
+          ? `[HISTÓRICO REMOVIDO PELO USUÁRIO - CONTEÚDO ORIGINAL:] ${m.content}`
+          : m.content,
       }))
 
     // Build plan context string for OpenAI
@@ -544,6 +544,7 @@ IMPORTANTE:
         planContext: planContextString,
         systemMessageOverride,
         userName,
+        pageContext: pageContext || request.nextUrl.pathname,
       }
     )
 

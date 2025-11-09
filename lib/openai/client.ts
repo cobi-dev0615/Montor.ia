@@ -31,6 +31,7 @@ export interface UserContext {
   planContext?: string
   systemMessageOverride?: string | null
   userName?: string
+  pageContext?: string | null
 }
 
 export interface ChatMessage {
@@ -63,6 +64,9 @@ export async function getChatCompletion(
     contextMessage += ` Current goal: ${userContext.currentGoal || 'none'}.`
     contextMessage += ` Progress points: ${userContext.progressPoints || 0}.`
     contextMessage += ` Consistency streak: ${userContext.consistencyStreak || 0} days.`
+    if (userContext.pageContext) {
+      contextMessage += ` Página atual: ${userContext.pageContext}.`
+    }
     if (userContext.planContext) {
       contextMessage += userContext.planContext
     }

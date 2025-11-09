@@ -9,42 +9,40 @@ import { ActiveGoalsProgress } from '@/components/progress/ActiveGoalsProgress'
 
 export default function ProgressPage() {
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-100">Meu Progresso</h1>
-        <p className="text-gray-400 mt-1">Acompanhe sua jornada e celebre conquistas</p>
+    <div className="space-y-4 xl:space-y-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold text-gray-100">Meu Progresso</h1>
+        <p className="text-sm text-gray-400">Acompanhe sua jornada e celebre conquistas</p>
       </div>
 
-      {/* Stats Overview - Full Width Horizontal */}
-      <Card>
-        <ProgressStats />
-      </Card>
-
-      {/* Main Content Grid - Avatar and Goals Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Avatar Evolution - Left Column */}
-        <Card>
-          <AvatarEvolution />
+      <div className="grid grid-cols-1 gap-4 xl:gap-5 xl:grid-cols-3 auto-rows-[minmax(0,1fr)]">
+        <Card className="p-4 md:p-5 h-full">
+          <ProgressStats />
         </Card>
 
-        {/* Active Goals Progress - Right Column */}
-        <Card>
-          <h2 className="text-xl font-semibold text-gray-100 mb-4">Progresso das Metas Ativas</h2>
-          <ActiveGoalsProgress />
-        </Card>
-      </div>
-
-      {/* Charts and Timeline - Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Progress Charts - Left Column */}
-        <Card>
-          <ProgressCharts />
+        <Card className="p-4 md:p-5 h-[400px] overflow-hidden">
+          <div className="h-full overflow-y-auto pr-1 custom-scrollbar">
+            <AvatarEvolution />
+          </div>
         </Card>
 
-        {/* Progress Timeline - Right Column */}
-        <Card>
-          <ProgressTimeline />
+        <Card className="p-4 md:p-5 h-[400px] overflow-hidden">
+          <div className="h-full overflow-y-auto pr-1 custom-scrollbar">
+            <h2 className="text-lg font-semibold text-gray-100 mb-3">Progresso das Metas Ativas</h2>
+            <ActiveGoalsProgress />
+          </div>
+        </Card>
+
+        <Card className="p-4 md:p-5 h-[360px] xl:col-span-2 overflow-hidden">
+          <div className="h-full overflow-y-auto pr-1 custom-scrollbar">
+            <ProgressCharts />
+          </div>
+        </Card>
+
+        <Card className="p-4 md:p-5 h-[360px] overflow-hidden">
+          <div className="h-full overflow-y-auto pr-1 custom-scrollbar">
+            <ProgressTimeline />
+          </div>
         </Card>
       </div>
     </div>

@@ -119,23 +119,21 @@ export function ProgressStats() {
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-rows-2 gap-3 h-full">
       {statCards.map((stat, index) => {
         const Icon = stat.icon
         return (
           <div
             key={index}
-            className={`${stat.bgColor} rounded-lg p-4 border ${stat.borderColor}`}
+            className={`${stat.bgColor} rounded-lg p-3 border ${stat.borderColor} flex flex-col h-full text-center`}
           >
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex-1 flex items-center justify-center gap-2 text-sm text-gray-200">
               <Icon className={`w-5 h-5 ${stat.color}`} />
-              <span className="text-sm text-gray-300">{stat.label}</span>
+              <span>{stat.label}</span>
             </div>
-            <div className="flex items-baseline gap-1">
-              <span className={`text-2xl font-bold ${stat.color}`}>
-                {stat.value}
-              </span>
-              <span className="text-sm text-gray-400">{stat.unit}</span>
+            <div className="flex-1 flex flex-col items-center justify-center gap-1 text-gray-100">
+              <span className={`text-3xl font-bold ${stat.color}`}>{stat.value}</span>
+              <span className="text-sm text-gray-300">{stat.unit}</span>
             </div>
           </div>
         )
