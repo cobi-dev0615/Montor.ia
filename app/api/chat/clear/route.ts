@@ -13,19 +13,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    await request.json().catch(() => ({}))
+    const body = (await request.json().catch(() => ({}))) as {
+      userId?: string
+      updates?: { is_deleted?: boolean }
+    }
+
+    if (body.userId && body.userId !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const isDeletedValue =
+      typeof body.updates?.is_deleted === 'boolean'
+        ? body.updates.is_deleted
+        : true
 
     const { error: updateError } = await supabase
       .from('messages')
-      .update({
-        is_deleted: true,
-      })
+      .update(
+        {
+          is_deleted: isDeletedValue,
+        },
+        { returning: 'minimal' }
+      )
       .eq('user_id', user.id)
 
     if (updateError) {
       console.error('Error clearing chat history:', updateError)
       return NextResponse.json(
-        { error: 'Falha ao limpar histórico' },
+        { error: updateError.message || 'Falha ao limpar histórico' },
         { status: 500 }
       )
     }

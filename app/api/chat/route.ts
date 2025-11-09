@@ -100,15 +100,17 @@ export async function POST(request: NextRequest) {
         .select('id, title, main_goal, status')
         .eq('user_id', user.id)
         .eq('is_deleted', false)
-        .eq('status', 'active')
         .order('created_at', { ascending: false })
 
       if (allGoals && allGoals.length > 0) {
+        const activeGoals = allGoals.filter(goal => goal.status === 'active')
+        const goalsToEvaluate = activeGoals.length > 0 ? activeGoals : allGoals
+
         // Check which goals have plans (milestones)
         const goalsWithPlans: any[] = []
         const goalsWithoutPlans: any[] = []
 
-        for (const goal of allGoals) {
+        for (const goal of goalsToEvaluate) {
           const { data: milestones } = await supabase
             .from('milestones')
             .select('id')
@@ -124,7 +126,7 @@ export async function POST(request: NextRequest) {
         }
 
         userGoalsStatus = {
-          totalGoals: allGoals.length,
+          totalGoals: goalsToEvaluate.length,
           goalsWithPlans: goalsWithPlans.length,
           goalsWithoutPlans: goalsWithoutPlans.length,
           goalsWithoutPlansList: goalsWithoutPlans.map(g => ({ id: g.id, title: g.title, main_goal: g.main_goal })),
@@ -151,14 +153,14 @@ NÃO se envolva em conversa geral. Foque APENAS em guiá-los para criar um plano
         // User has no goals at all
         systemMessageOverride = `O usuário ainda não tem nenhuma meta ativa.
 
-IMPORTANTE: Sua resposta DEVE estar em PORTUGUÊS BRASILEIRO e:
-1. Perguntar o que eles gostariam de alcançar
-2. Incentivá-los a criar uma meta na página de Metas
-3. Explicar que você os ajudará a criar um plano assim que definirem uma meta
-4. Ser caloroso e motivador
-5. Manter sua resposta concisa (máximo de 3-4 frases)
+IMPORTANTE: Sua resposta DEVE estar em PORTUGUÊS BRASILEIRO e seguir estes passos:
+1. Reconheça calorosamente que eles estão começando agora.
+2. Informe que ele pode criar uma meta direto na página de Metas OU, se preferir, você pode guiá-lo aqui mesmo no chat.
+3. Convide-o a criar junto pelo chat perguntando algo como: "Posso te fazer algumas perguntas rápidas para entender melhor sua meta?"
+4. Se o usuário aceitar, siga com as perguntas na ordem: idade, objetivo principal (e peça mais detalhes se estiver vago), nível atual (iniciante/intermediário/avançado) e disponibilidade de dias por semana. Depois proponha um prazo em semanas e confirme.
+5. Mantenha a resposta inicial em 3-4 frases, acolhedora, motivadora e clara sobre as duas opções.
 
-NÃO se envolva em conversa geral. Foque em ajudá-los a começar com a definição de metas.`
+NÃO se envolva em conversa geral fora desse contexto. Foque em ajudá-lo a definir a meta e iniciar o plano.`
       }
     }
 

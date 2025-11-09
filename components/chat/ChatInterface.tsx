@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { ChatHeader } from "./ChatHeader";
@@ -13,6 +13,36 @@ interface Message {
   role: "user" | "assistant" | "system";
   content: string;
   created_at: string;
+}
+
+type PlanWizardStep =
+  | "idle"
+  | "permission"
+  | "age"
+  | "objective"
+  | "objectiveClarify"
+  | "level"
+  | "availability"
+  | "termConfirmation"
+  | "creating";
+
+type PlanWizardLevel = "beginner" | "intermediate" | "advanced";
+
+interface PlanWizardData {
+  age?: number;
+  objective?: string;
+  level?: PlanWizardLevel;
+  availability?: number;
+  termWeeks?: number;
+  suggestedTerm?: number;
+}
+
+interface GoalSummary {
+  id: string;
+  status: string;
+  title: string;
+  main_goal: string;
+  hasPlan?: boolean;
 }
 
 interface ChatInterfaceProps {
@@ -32,8 +62,309 @@ export function ChatInterface({
   const [clearing, setClearing] = useState(false);
   const [progressUpdate, setProgressUpdate] = useState<any>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  const [existingGoals, setExistingGoals] = useState<GoalSummary[] | null>(null);
+  const [planWizardStep, setPlanWizardStep] = useState<PlanWizardStep>("idle");
+  const [planWizardData, setPlanWizardData] = useState<PlanWizardData>({});
+  const [planWizardActive, setPlanWizardActive] = useState(false);
+  const [planWizardLoading, setPlanWizardLoading] = useState(false);
+  const [planProfileSnapshot, setPlanProfileSnapshot] = useState<any>(null);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [autoWizardTriggered, setAutoWizardTriggered] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createSupabaseClient();
+
+  const appendLocalMessage = useCallback(
+    (role: Message["role"], content: string) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `local-${role}-${Date.now()}-${Math.random()}`,
+          role,
+          content,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+    },
+    []
+  );
+
+  const fetchGoalsSummary = useCallback(async () => {
+    try {
+      const response = await fetch("/api/goals");
+      if (!response.ok) {
+        return null;
+      }
+      const data = await response.json();
+      const goalsList: GoalSummary[] = (data.goals || []).map((goal: any) => ({
+        id: goal.id,
+        status: goal.status,
+        title: goal.title,
+        main_goal: goal.main_goal,
+        hasPlan: Boolean(goal.hasPlan),
+      }));
+      setExistingGoals(goalsList);
+      return goalsList;
+    } catch (error) {
+      console.error("Error fetching goals summary:", error);
+      return null;
+    }
+  }, []);
+
+  const resetPlanWizard = useCallback(() => {
+    setPlanWizardActive(false);
+    setPlanWizardStep("idle");
+    setPlanWizardData({});
+    setPlanWizardLoading(false);
+  }, []);
+
+  const loadMessages = useCallback(
+    async (userId: string) => {
+      try {
+        const query = supabase
+          .from("messages")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("is_deleted", false);
+
+        if (goalId) {
+          query.eq("goal_id", goalId);
+        }
+
+        if (variant === "dock") {
+          query.order("created_at", { ascending: false }).limit(2);
+        } else {
+          query.order("created_at", { ascending: true });
+        }
+
+        const { data, error: fetchError } = await query;
+
+        if (fetchError) {
+          console.error("Error fetching messages:", fetchError);
+          return;
+        }
+
+        if (data) {
+          if (variant === "dock") {
+            const ordered = [...(data as Message[])].sort(
+              (a, b) =>
+                new Date(a.created_at).getTime() -
+                new Date(b.created_at).getTime()
+            );
+            setMessages(ordered);
+          } else {
+            setMessages(data as Message[]);
+          }
+        } else {
+          setMessages([]);
+        }
+      } catch (err) {
+        console.error("Error fetching messages:", err);
+      }
+    },
+    [goalId, supabase, variant]
+  );
+
+  const hasActivePlan = useMemo(() => {
+    if (!existingGoals) return false;
+    return existingGoals.some(
+      (goal) => goal.status !== "completed" && goal.hasPlan
+    );
+  }, [existingGoals]);
+
+  const hasActiveGoalWithoutPlan = useMemo(() => {
+    if (!existingGoals) return false;
+    return existingGoals.some(
+      (goal) => goal.status !== "completed" && !goal.hasPlan
+    );
+  }, [existingGoals]);
+
+  const isPositiveResponse = (text: string) => {
+    const normalized = text.toLowerCase().trim();
+    const positives = [
+      "sim",
+      "claro",
+      "com certeza",
+      "ok",
+      "okay",
+      "sim!",
+      "bora",
+      "vamos",
+      "pode",
+      "pode sim",
+      "yes",
+    ];
+    return positives.some((word) => normalized.includes(word));
+  };
+
+  const extractNumberFromText = (text: string) => {
+    const match = text.match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : null;
+  };
+
+  const normalizeLevel = (text: string): PlanWizardLevel | null => {
+    const normalized = text.toLowerCase();
+    if (normalized.includes("inic")) return "beginner";
+    if (normalized.includes("inter")) return "intermediate";
+    if (normalized.includes("avan")) return "advanced";
+    return null;
+  };
+
+  const computeSuggestedTerm = (
+    level: PlanWizardLevel,
+    availability: number
+  ) => {
+    let baseWeeks = 8;
+    if (level === "beginner") baseWeeks = 12;
+    if (level === "intermediate") baseWeeks = 8;
+    if (level === "advanced") baseWeeks = 6;
+
+    if (availability >= 6) {
+      baseWeeks = Math.max(4, baseWeeks - 2);
+    } else if (availability <= 2) {
+      baseWeeks += 2;
+    }
+
+    return Math.min(24, Math.max(4, baseWeeks));
+  };
+
+  const ensureProfileStored = useCallback(
+    async (profile: PlanWizardData & { updated_at: string }) => {
+      if (!currentUser) return;
+      try {
+        await supabase
+          .from("users")
+          .update({
+            onboarding_data: {
+              ...(planProfileSnapshot || {}),
+              chat_plan_profile: profile,
+            },
+          })
+          .eq("id", currentUser.id);
+      } catch (error) {
+        console.error("Error saving plan profile:", error);
+      }
+    },
+    [currentUser, planProfileSnapshot, supabase]
+  );
+
+  const handlePlanCreation = useCallback(
+    async (data: Required<PlanWizardData>) => {
+      if (!currentUser) {
+        appendLocalMessage(
+          "assistant",
+          "Não consegui confirmar o usuário autenticado. Por favor, faça login novamente."
+        );
+        resetPlanWizard();
+        return;
+      }
+
+      setPlanWizardLoading(true);
+      setLoading(true);
+
+      appendLocalMessage(
+        "assistant",
+        "Perfeito! Vou estruturar sua meta e plano agora. Só um instante..."
+      );
+
+      try {
+        const title =
+          data.objective!.length > 60
+            ? `${data.objective!.slice(0, 57)}...`
+            : data.objective!;
+
+        const goalResponse = await fetch("/api/goals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title,
+            main_goal: data.objective,
+            description: `Meta criada via Mentor.ai (plano de ${data.termWeeks} semanas).`,
+          }),
+        });
+
+        if (!goalResponse.ok) {
+          const goalError = await goalResponse.json().catch(() => ({}));
+          throw new Error(
+            goalError?.error ||
+              "Não foi possível criar a meta no momento. Tente novamente."
+          );
+        }
+
+        const { goal } = await goalResponse.json();
+        const goalId = goal?.id;
+
+        if (!goalId) {
+          throw new Error("Meta criada, mas não recebemos o identificador.");
+        }
+
+        const planResponse = await fetch(
+          `/api/goals/${goalId}/generate-plan`,
+          {
+            method: "POST",
+          }
+        );
+
+        if (!planResponse.ok) {
+          const planError = await planResponse.json().catch(() => ({}));
+          throw new Error(
+            planError?.error ||
+              "Não foi possível gerar o plano agora. Você pode tentar novamente na página de Metas."
+          );
+        }
+
+        const profileToPersist = {
+          age: data.age,
+          objective: data.objective,
+          level: data.level,
+          availability: data.availability,
+          termWeeks: data.termWeeks,
+          suggestedTerm: data.suggestedTerm,
+          updated_at: new Date().toISOString(),
+        };
+
+        await ensureProfileStored(profileToPersist);
+
+        appendLocalMessage(
+          "assistant",
+          `Tudo pronto! Criei a meta "${goal.title}" e montei um plano de ${data.termWeeks} semanas adaptado ao que você compartilhou. Você pode ver cada marco e micro-ação na página de Metas. Quando estiver pronto, siga para a próxima ação e me conte como foi!`
+        );
+
+        resetPlanWizard();
+        setPlanWizardData({});
+
+        // Atualiza lista de metas em cache
+        await fetchGoalsSummary();
+
+        // Notifica outras telas
+        window.dispatchEvent(
+          new CustomEvent("goalsUpdated", {
+            detail: { goalId, source: "chat-plan-wizard" },
+          })
+        );
+      } catch (error) {
+        console.error("Error creating plan via wizard:", error);
+        const message =
+          error instanceof Error ? error.message : "Erro inesperado.";
+        appendLocalMessage(
+          "assistant",
+          `Encontrei um problema ao criar seu plano: ${message} Você pode tentar novamente ou abrir a página de Metas para continuar por lá.`
+        );
+        resetPlanWizard();
+      } finally {
+        setPlanWizardLoading(false);
+        setLoading(false);
+      }
+    },
+    [
+      appendLocalMessage,
+      currentUser,
+      ensureProfileStored,
+      fetchGoalsSummary,
+      resetPlanWizard,
+      setLoading,
+    ]
+  );
 
   // Listen for progress updates
   useEffect(() => {
@@ -62,10 +393,12 @@ export function ChatInterface({
         } = await supabase.auth.getUser();
         if (!user) return;
 
+        setCurrentUser(user);
+
         // Fetch user name
         const { data: userData } = await supabase
           .from("users")
-          .select("full_name")
+          .select("full_name, onboarding_data")
           .eq("id", user.id)
           .single();
 
@@ -75,43 +408,326 @@ export function ChatInterface({
           setUserName(user.email?.split("@")[0] || "Usuário");
         }
 
-        // Fetch messages
-        const query = supabase
-          .from("messages")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("is_deleted", false) // Only fetch non-deleted messages
-          .order("created_at", { ascending: true });
-
-        if (goalId) {
-          query.eq("goal_id", goalId);
+        if (userData?.onboarding_data) {
+          setPlanProfileSnapshot(userData.onboarding_data);
         }
 
-        const { data, error: fetchError } = await query;
-
-        if (fetchError) {
-          console.error("Error fetching messages:", fetchError);
-          return;
-        }
-
-        if (data) {
-          setMessages(data as Message[]);
-        }
+        await fetchGoalsSummary();
+        await loadMessages(user.id);
       } catch (err) {
         console.error("Error fetching messages:", err);
+      } finally {
+        setInitialDataLoaded(true);
       }
     };
 
     fetchUserData();
-  }, [goalId, supabase]);
+  }, [fetchGoalsSummary, goalId, loadMessages, supabase]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = async (content: string) => {
-    if (!content.trim() || loading) return;
+  const processPlanWizardInput = useCallback(
+    async (rawContent: string) => {
+      const content = rawContent.trim();
+      appendLocalMessage("user", content);
+
+      switch (planWizardStep) {
+        case "permission": {
+          if (isPositiveResponse(content)) {
+            setPlanWizardStep("age");
+            appendLocalMessage(
+              "assistant",
+              "Ótimo! Para começar, quantos anos você tem?"
+            );
+          } else {
+            appendLocalMessage(
+              "assistant",
+              "Sem problemas! Quando quiser, é só me avisar que iniciamos a criação do seu plano."
+            );
+            resetPlanWizard();
+          }
+          return;
+        }
+        case "age": {
+          const age = extractNumberFromText(content);
+          if (!age || age < 5 || age > 100) {
+            appendLocalMessage(
+              "assistant",
+              "Para eu planejar melhor, me conte sua idade usando números. Por exemplo: \"Tenho 28 anos\"."
+            );
+            return;
+          }
+          setPlanWizardData((prev) => ({ ...prev, age }));
+          setPlanWizardStep("objective");
+          appendLocalMessage(
+            "assistant",
+            "Perfeito! Agora, me diga: qual é a principal coisa que você quer conquistar neste momento?"
+          );
+          return;
+        }
+        case "objective": {
+          const words = content.split(/\s+/).filter(Boolean);
+          const isDetailed = words.length >= 5 || content.length >= 25;
+
+          if (!isDetailed) {
+            setPlanWizardData((prev) => ({ ...prev, objective: content }));
+            setPlanWizardStep("objectiveClarify");
+            appendLocalMessage(
+              "assistant",
+              "Entendi! Poderia compartilhar um pouco mais de detalhes? O que exatamente você quer alcançar ou melhorar?"
+            );
+            return;
+          }
+
+          setPlanWizardData((prev) => ({ ...prev, objective: content }));
+          setPlanWizardStep("level");
+          appendLocalMessage(
+            "assistant",
+            "E como você descreve seu nível atual nesse assunto? Pode responder com \"Iniciante\", \"Intermediário\" ou \"Avançado\"."
+          );
+          return;
+        }
+        case "objectiveClarify": {
+          const baseObjective = planWizardData.objective || "";
+          const detailedObjective = `${baseObjective} ${content}`.trim();
+          setPlanWizardData((prev) => ({ ...prev, objective: detailedObjective }));
+          setPlanWizardStep("level");
+          appendLocalMessage(
+            "assistant",
+            "Perfeito! Agora, como você avalia seu nível atual nesse tema? Responda com \"Iniciante\", \"Intermediário\" ou \"Avançado\"."
+          );
+          return;
+        }
+        case "level": {
+          const level = normalizeLevel(content);
+          if (!level) {
+            appendLocalMessage(
+              "assistant",
+              "Para adaptar o plano, preciso que você escolha entre \"Iniciante\", \"Intermediário\" ou \"Avançado\". Qual opção representa melhor sua situação?"
+            );
+            return;
+          }
+          setPlanWizardData((prev) => ({ ...prev, level }));
+          setPlanWizardStep("availability");
+          appendLocalMessage(
+            "assistant",
+            "Ótimo! Quantos dias por semana você consegue dedicar a essa meta? Responda com um número entre 1 e 7."
+          );
+          return;
+        }
+        case "availability": {
+          const availability = extractNumberFromText(content);
+          if (!availability || availability < 1 || availability > 7) {
+            appendLocalMessage(
+              "assistant",
+              "Para planejar sua rotina, me diga quantos dias por semana você pode se dedicar. Use um número de 1 a 7."
+            );
+            return;
+          }
+
+          setPlanWizardData((prev) => ({ ...prev, availability }));
+          if (!planWizardData.level) {
+            setPlanWizardStep("level");
+            appendLocalMessage(
+              "assistant",
+              "Antes de seguir, preciso saber seu nível atual: \"Iniciante\", \"Intermediário\" ou \"Avançado\"?"
+            );
+            return;
+          }
+
+          const suggestedTerm = computeSuggestedTerm(
+            planWizardData.level!,
+            availability
+          );
+
+          setPlanWizardData((prev) => ({
+            ...prev,
+            availability,
+            suggestedTerm,
+          }));
+          setPlanWizardStep("termConfirmation");
+
+          appendLocalMessage(
+            "assistant",
+            `Com base no que você compartilhou, sugiro um plano de ${suggestedTerm} semanas. Isso equilibra o desafio com o ritmo que você pode manter. Está tudo bem para você? Se preferir outro período, pode me dizer quantas semanas gostaria.`
+          );
+          return;
+        }
+        case "termConfirmation": {
+          const number = extractNumberFromText(content);
+          if (number && number >= 4 && number <= 52) {
+            const finalizedData = {
+              ...planWizardData,
+              termWeeks: number,
+              suggestedTerm: planWizardData.suggestedTerm,
+            } as Required<PlanWizardData>;
+            setPlanWizardData(finalizedData);
+            setPlanWizardStep("creating");
+            await handlePlanCreation(finalizedData);
+            return;
+          }
+
+          if (isPositiveResponse(content) && planWizardData.suggestedTerm) {
+            const finalizedData = {
+              ...planWizardData,
+              termWeeks: planWizardData.suggestedTerm,
+              suggestedTerm: planWizardData.suggestedTerm,
+            } as Required<PlanWizardData>;
+            setPlanWizardData(finalizedData);
+            setPlanWizardStep("creating");
+            await handlePlanCreation(finalizedData);
+            return;
+          }
+
+          appendLocalMessage(
+            "assistant",
+            "Sem problemas! Me diga em quantas semanas você quer concluir esse plano (por exemplo: 10 semanas)."
+          );
+          return;
+        }
+        default:
+          appendLocalMessage(
+            "assistant",
+            "Algo inesperado aconteceu com o fluxo do plano. Vamos tentar novamente mais tarde."
+          );
+          resetPlanWizard();
+      }
+    },
+    [
+      appendLocalMessage,
+      computeSuggestedTerm,
+      handlePlanCreation,
+      isPositiveResponse,
+      normalizeLevel,
+      planWizardData,
+      planWizardStep,
+      resetPlanWizard,
+    ]
+  );
+
+  const startPlanWizard = useCallback(
+    async (initiatedByMessage = false) => {
+      if (planWizardActive || planWizardLoading) {
+        return true;
+      }
+
+      let goals = existingGoals;
+      if (!goals) {
+        const fetched = await fetchGoalsSummary();
+        goals = Array.isArray(fetched) ? fetched : [];
+      }
+
+      const goalList = Array.isArray(goals) ? goals : [];
+      const activeGoals = goalList.filter((goal) => goal.status !== "completed");
+      const activeGoalsWithPlan = activeGoals.filter((goal) => goal.hasPlan);
+      const activeGoalsWithoutPlan = activeGoals.filter((goal) => !goal.hasPlan);
+
+      if (activeGoalsWithPlan.length > 0) {
+        if (initiatedByMessage) {
+          appendLocalMessage(
+            "assistant",
+            "Percebo que você já tem um plano em andamento. Me conte como foi sua última ação ou se precisa de ajuda para o próximo passo, e avançamos juntos!"
+          );
+        }
+        return false;
+      }
+
+      if (activeGoalsWithoutPlan.length > 1) {
+        appendLocalMessage(
+          "assistant",
+          "Você tem mais de uma meta ativa sem plano no momento. Vamos escolher qual delas você quer transformar em um plano agora?"
+        );
+        return false;
+      }
+
+      setPlanWizardActive(true);
+      setPlanWizardStep("permission");
+      appendLocalMessage(
+        "assistant",
+        "Oi! Antes de começarmos, quero te conhecer um pouco melhor para criar um plano sob medida. Posso te fazer algumas perguntas rápidas?"
+      );
+      return true;
+    },
+    [
+      appendLocalMessage,
+      existingGoals,
+      fetchGoalsSummary,
+      planWizardActive,
+      planWizardLoading,
+    ]
+  );
+
+  const getLastAssistantMessage = useCallback(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "assistant") {
+        return messages[i];
+      }
+    }
+    return null;
+  }, [messages]);
+
+  const detectPlanRequest = (content: string) => {
+    const normalized = content.toLowerCase();
+    return (
+      normalized.includes("criar plano") ||
+      normalized.includes("gerar plano") ||
+      normalized.includes("novo plano") ||
+      normalized.includes("criar meta") ||
+      normalized.includes("quero um plano")
+    );
+  };
+
+  const handleSend = async (rawContent: string) => {
+    const trimmedContent = rawContent.trim();
+    if (!trimmedContent) return;
+
+    if (planWizardStep === "creating" || planWizardLoading) {
+      return;
+    }
+
+    const lastAssistantMessage = getLastAssistantMessage();
+    const assistantInvitedForWizard =
+      lastAssistantMessage &&
+      /posso te fazer algumas perguntas/i.test(
+        lastAssistantMessage.content || ""
+      );
+
+    if (
+      !planWizardActive &&
+      !planWizardLoading &&
+      assistantInvitedForWizard &&
+      isPositiveResponse(trimmedContent)
+    ) {
+      appendLocalMessage("user", trimmedContent);
+      setPlanWizardActive(true);
+      setPlanWizardStep("age");
+      setPlanWizardData({});
+      setAutoWizardTriggered(true);
+      appendLocalMessage(
+        "assistant",
+        "Ótimo! Para começar, quantos anos você tem?"
+      );
+      return;
+    }
+
+    if (planWizardActive && planWizardStep !== "idle") {
+      await processPlanWizardInput(trimmedContent);
+      return;
+    }
+
+    if (detectPlanRequest(trimmedContent)) {
+      appendLocalMessage("user", trimmedContent);
+      const started = await startPlanWizard(true);
+      if (!started) {
+        resetPlanWizard();
+      }
+      return;
+    }
+
+    if (loading) return;
 
     setLoading(true);
     setError(null);
@@ -120,7 +736,7 @@ export function ChatInterface({
     const userMessage: Message = {
       id: `temp-${Date.now()}`,
       role: "user",
-      content: content.trim(),
+      content: trimmedContent,
       created_at: new Date().toISOString(),
     };
 
@@ -134,7 +750,7 @@ export function ChatInterface({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: content.trim(),
+          message: trimmedContent,
           goalId: goalId || null,
           context,
         }),
@@ -188,21 +804,7 @@ export function ChatInterface({
           }
         }
 
-        const query = supabase
-          .from("messages")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("is_deleted", false) // Only fetch non-deleted messages
-          .order("created_at", { ascending: true });
-
-        if (goalId) {
-          query.eq("goal_id", goalId);
-        }
-
-        const { data: updatedMessages } = await query;
-        if (updatedMessages) {
-          setMessages(updatedMessages as Message[]);
-        }
+        await loadMessages(user.id);
       }
     } catch (err) {
       console.error("Error sending message:", err);
@@ -222,18 +824,30 @@ export function ChatInterface({
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) {
         throw new Error("Usuário não autenticado");
       }
-      console.log("user", user.id);
 
-      const { error: clearError } = await supabase
-        .from("messages")
-        .update({ is_deleted: true })
-        .eq("user_id", user.id);
+      const response = await fetch("/api/chat/clear", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          updates: {
+            is_deleted: true,
+          },
+        }),
+      });
 
-      if (clearError) {
-        throw clearError;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.error ||
+            "Falha ao limpar histórico de chat"
+        );
       }
 
       setMessages([]);
@@ -246,6 +860,75 @@ export function ChatInterface({
       setClearing(false);
     }
   };
+
+  const inputDisabled = loading || planWizardLoading;
+
+  const hasCollectedProfile = useMemo(() => {
+    if (!planProfileSnapshot) return false;
+    const profile =
+      planProfileSnapshot.chat_plan_profile || planProfileSnapshot || {};
+    const { age, objective, availability, level } = profile;
+    return (
+      typeof age === "number" &&
+      age > 0 &&
+      typeof objective === "string" &&
+      objective.length > 0 &&
+      typeof availability === "number" &&
+      availability > 0 &&
+      typeof level === "string" &&
+      level.length > 0
+    );
+  }, [planProfileSnapshot]);
+
+  useEffect(() => {
+    if (
+      autoWizardTriggered ||
+      planWizardActive ||
+      planWizardLoading ||
+      !initialDataLoaded
+    ) {
+      return;
+    }
+
+    if (existingGoals === null) {
+      return;
+    }
+
+    if (hasActivePlan) {
+      return;
+    }
+
+    if (messages.length > 0) {
+      return;
+    }
+
+    if (hasCollectedProfile) {
+      return;
+    }
+
+    if (!hasActiveGoalWithoutPlan && existingGoals && existingGoals.length > 0) {
+      return;
+    }
+
+    startPlanWizard(false)
+      .then((started) => {
+        if (started) {
+          setAutoWizardTriggered(true);
+        }
+      })
+      .catch(() => {});
+  }, [
+    autoWizardTriggered,
+    existingGoals,
+    hasCollectedProfile,
+    hasActiveGoalWithoutPlan,
+    hasActivePlan,
+    initialDataLoaded,
+    messages.length,
+    planWizardActive,
+    planWizardLoading,
+    startPlanWizard,
+  ]);
 
   const containerClasses =
     variant === "dock"
@@ -280,7 +963,7 @@ export function ChatInterface({
         )}
         <div ref={messagesEndRef} />
       </div>
-      <ChatInput onSend={handleSend} disabled={loading} />
+      <ChatInput onSend={handleSend} disabled={inputDisabled} />
 
       {/* Progress Update Toast */}
       {progressUpdate && (

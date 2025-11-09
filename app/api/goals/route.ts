@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
         return {
           ...goal,
           progress,
+          hasPlan: (totalCount || 0) > 0,
         }
       })
     )

@@ -26,18 +26,20 @@ export function ChatHeader({
             </span>
           )}
         </div>
-        {onClearHistory && (
-          <button
-            type="button"
-            onClick={onClearHistory}
-            disabled={clearing}
-            className="p-2 rounded-full border border-[rgba(0,212,255,0.35)] text-gray-300 hover:bg-[rgba(0,212,255,0.15)] transition disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Limpar histórico"
-            aria-label="Limpar histórico do chat"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {onClearHistory && (
+            <button
+              type="button"
+              onClick={onClearHistory}
+              disabled={clearing}
+              className="p-2 rounded-full border border-[rgba(0,212,255,0.35)] text-gray-300 hover:bg-[rgba(0,212,255,0.15)] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Limpar histórico"
+              aria-label="Limpar histórico do chat"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

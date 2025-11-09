@@ -156,8 +156,7 @@ export default function GoalDetailPage({
         </div>
       </div>
 
-      {/* One Thing Display */}
-      <OneThingDisplay mainGoal={goal.main_goal} />
+      
 
       {/* Milestones */}
       <Card>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { GoalCard } from '@/components/goals/GoalCard'
@@ -27,7 +27,7 @@ export default function GoalsPage() {
   // Check if there are any incomplete goals (not completed)
   const hasIncompleteGoals = goals.some((goal) => goal.status !== 'completed')
 
-  const fetchGoals = async () => {
+  const fetchGoals = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -44,11 +44,22 @@ export default function GoalsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchGoals()
-  }, [])
+  }, [fetchGoals])
+
+  useEffect(() => {
+    const handleGoalsUpdated = () => {
+      fetchGoals()
+    }
+
+    window.addEventListener('goalsUpdated', handleGoalsUpdated)
+    return () => {
+      window.removeEventListener('goalsUpdated', handleGoalsUpdated)
+    }
+  }, [fetchGoals])
 
   const [newlyCreatedGoalId, setNewlyCreatedGoalId] = useState<string | null>(null)
 
@@ -82,7 +93,8 @@ export default function GoalsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex justify-center">
+      <div className="w-full max-w-4xl space-y-6 px-4 sm:px-6 lg:px-0">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -128,8 +140,11 @@ export default function GoalsPage() {
       {/* Loading State */}
       {loading && (
         <Card>
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+          <div className="flex items-center justify-center gap-3 py-12 text-primary-500">
+            <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
+            <span className="text-sm font-medium uppercase tracking-wide">
+              Carregando...
+            </span>
           </div>
         </Card>
       )}
@@ -204,6 +219,7 @@ export default function GoalsPage() {
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={handleGoalCreated}
       />
+    </div>
     </div>
   )
 }

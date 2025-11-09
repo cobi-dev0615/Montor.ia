@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { CheckCircle2, Circle, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
 
 interface Milestone {
   id: string
@@ -241,7 +240,7 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-6">
         <h3 className="text-lg font-semibold text-gray-100">Jornada de Progresso</h3>
         <span className="text-sm text-gray-400">
           {completedCount} de {totalCount} concluídos
@@ -260,40 +259,38 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
           <p>Ainda não há marcos. Comece criando marcos para sua meta.</p>
         </div>
       ) : (
-        <div className="relative">
-          {/* Vertical Line */}
-          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-700" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {milestones.map((milestone, index) => {
+            const orderLabel = String(index + 1).padStart(2, '0')
+            const statusColor =
+              milestone.status === 'completed'
+                ? 'bg-green-500 text-gray-900'
+                : milestone.status === 'in_progress'
+                ? 'bg-primary-500 text-gray-900'
+                : 'bg-gray-600 text-gray-200'
 
-          {/* Milestones */}
-          <div className="space-y-6">
-            {milestones.map((milestone, index) => (
-              <div key={milestone.id} className="relative flex gap-4">
-                {/* Icon */}
-                <div className="relative z-10">
-                  {milestone.status === 'completed' ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-500 bg-gray-800" />
-                  ) : milestone.status === 'in_progress' ? (
-                    <Circle className="w-6 h-6 text-primary-500 bg-gray-800" />
-                  ) : (
-                    <Circle className="w-6 h-6 text-gray-500 bg-gray-800" />
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 pb-6">
-                  <div className={`${milestone.status === 'completed' ? 'text-green-400' : milestone.status === 'in_progress' ? 'text-primary-400' : 'text-gray-400'}`}>
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <h4 className="font-semibold mb-1">{milestone.title}</h4>
+            return (
+              <div
+                key={milestone.id}
+                className="flex flex-col h-full rounded-xl border border-gray-700 bg-gray-800/60 p-5 shadow-[0_0_15px_rgba(0,0,0,0.25)]"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full font-semibold ${statusColor}`}>
+                    {orderLabel}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-100">{milestone.title}</h4>
                         {milestone.description && (
-                          <p className="text-sm mb-3">{milestone.description}</p>
+                          <p className="mt-2 text-sm text-gray-400">{milestone.description}</p>
                         )}
                       </div>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => toggleMilestone(milestone.id)}
-                        className="ml-2"
+                        className="h-8 w-8 rounded-full border border-gray-700 text-gray-300 hover:text-primary-400"
                       >
                         {expandedMilestones.has(milestone.id) ? (
                           <ChevronUp className="w-4 h-4" />
@@ -302,67 +299,95 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
                         )}
                       </Button>
                     </div>
-                    
-                    {/* Micro-actions */}
-                    {expandedMilestones.has(milestone.id) && (
-                      <div className="mt-4 space-y-2">
-                        {actions[milestone.id] && actions[milestone.id].length > 0 ? (
-                          actions[milestone.id].map((action) => (
-                            <Card key={action.id} className="p-3 bg-gray-700">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    {action.status === 'completed' ? (
-                                      <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
-                                    ) : (
-                                      <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                    )}
-                                    <h5 className={`text-sm font-medium ${
-                                      action.status === 'completed' ? 'text-green-400 line-through' : 'text-gray-100'
-                                    }`}>
-                                      {action.title}
-                                    </h5>
-                                  </div>
-                                  {action.description && (
-                                    <p className="text-xs text-gray-400 ml-6">{action.description}</p>
-                                  )}
-                                </div>
-                                {action.status !== 'completed' && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleMarkActionDone(action.id)}
-                                    disabled={updatingActionId === action.id}
-                                    className="flex-shrink-0"
-                                  >
-                                    {updatingActionId === action.id ? '...' : 'Marcar como concluído'}
-                                  </Button>
-                                )}
-                              </div>
-                            </Card>
-                          ))
-                        ) : (
-                          <p className="text-sm text-gray-500 italic ml-6">Ainda não há micro-ações</p>
-                        )}
-                      </div>
-                    )}
-
-                    {milestone.status !== 'completed' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleMarkComplete(milestone.id)}
-                        disabled={updatingId === milestone.id}
-                        className="mt-3"
-                      >
-                        {updatingId === milestone.id ? 'Atualizando...' : 'Marcar como Concluído'}
-                      </Button>
-                    )}
+                    <div className="mt-2 flex items-center gap-2 text-xs uppercase tracking-wide">
+                      {milestone.status === 'completed' ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <span className="text-green-400">Concluído</span>
+                        </>
+                      ) : milestone.status === 'in_progress' ? (
+                        <>
+                          <Circle className="h-3.5 w-3.5 text-primary-400" />
+                          <span className="text-primary-300">Em andamento</span>
+                        </>
+                      ) : (
+                        <>
+                          <Circle className="h-3.5 w-3.5 text-gray-500" />
+                          <span className="text-gray-400">Pendente</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                {expandedMilestones.has(milestone.id) && (
+                  <div className="mt-5 space-y-3">
+                    {actions[milestone.id] && actions[milestone.id].length > 0 ? (
+                      <ol className="space-y-3">
+                        {actions[milestone.id].map((action, actionIndex) => {
+                          const actionLabel = `${orderLabel}.${actionIndex + 1}`
+                          const actionCompleted = action.status === 'completed'
+
+                          return (
+                            <li
+                              key={action.id}
+                              className="flex items-start gap-3 rounded-lg border border-gray-700 bg-gray-900/60 p-3"
+                            >
+                              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-800 text-xs font-semibold text-primary-300">
+                                {actionLabel}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div>
+                                    <p
+                                      className={`text-sm font-medium ${
+                                        actionCompleted ? 'text-green-400 line-through' : 'text-gray-100'
+                                      }`}
+                                    >
+                                      {action.title}
+                                    </p>
+                                    {action.description && (
+                                      <p className="mt-1 text-xs text-gray-400">{action.description}</p>
+                                    )}
+                                  </div>
+                                  {!actionCompleted && (
+                                    <Button
+                                      size="xs"
+                                      variant="outline"
+                                      onClick={() => handleMarkActionDone(action.id)}
+                                      disabled={updatingActionId === action.id}
+                                    >
+                                      {updatingActionId === action.id ? '...' : 'Concluir'}
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </li>
+                          )
+                        })}
+                      </ol>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">Ainda não há micro-ações</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-auto flex items-center justify-between gap-3 pt-5">
+                  <div className="text-xs text-gray-500">Marco {index + 1} de {totalCount}</div>
+                  {milestone.status !== 'completed' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleMarkComplete(milestone.id)}
+                      disabled={updatingId === milestone.id}
+                    >
+                      {updatingId === milestone.id ? 'Atualizando...' : 'Marcar como Concluído'}
+                    </Button>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
+            )
+          })}
         </div>
       )}
     </div>
