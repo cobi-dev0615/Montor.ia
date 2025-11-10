@@ -29,12 +29,9 @@ export async function POST(request: NextRequest) {
 
     const { error: updateError } = await supabase
       .from('messages')
-      .update(
-        {
-          is_deleted: isDeletedValue,
-        },
-        { returning: 'minimal' }
-      )
+      .update({
+        is_deleted: isDeletedValue,
+      })
       .eq('user_id', user.id)
 
     if (updateError) {

@@ -287,10 +287,10 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
                         )}
                       </div>
                       <Button
-                        variant="ghost"
-                        size="icon"
+                        variant="outline"
+                        size="sm"
                         onClick={() => toggleMilestone(milestone.id)}
-                        className="h-8 w-8 rounded-full border border-gray-700 text-gray-300 hover:text-primary-400"
+                        className="h-8 w-8 rounded-full border border-gray-700 text-gray-300 hover:text-primary-400 bg-transparent flex items-center justify-center"
                       >
                         {expandedMilestones.has(milestone.id) ? (
                           <ChevronUp className="w-4 h-4" />
@@ -352,10 +352,11 @@ export function MilestoneTimeline({ goalId, onUpdate, onMilestonesLoaded }: Mile
                                   </div>
                                   {!actionCompleted && (
                                     <Button
-                                      size="xs"
+                                      size="sm"
                                       variant="outline"
                                       onClick={() => handleMarkActionDone(action.id)}
                                       disabled={updatingActionId === action.id}
+                                      className="px-2 py-1 text-xs"
                                     >
                                       {updatingActionId === action.id ? '...' : 'Concluir'}
                                     </Button>
