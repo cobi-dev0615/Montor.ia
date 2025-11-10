@@ -28,28 +28,41 @@ export async function GET(request: NextRequest) {
     // Calculate progress for each goal
     const goalsWithProgress = await Promise.all(
       (goals || []).map(async (goal) => {
-        // Count completed milestones
-        const { count: completedCount } = await supabase
+        const { data: milestoneRows, error: milestoneError } = await supabase
           .from('milestones')
-          .select('*', { count: 'exact', head: true })
-          .eq('goal_id', goal.id)
-          .eq('status', 'completed')
-          .eq('is_deleted', false)
-
-        const { count: totalCount } = await supabase
-          .from('milestones')
-          .select('*', { count: 'exact', head: true })
+          .select('id, status, actions(id, status)')
           .eq('goal_id', goal.id)
           .eq('is_deleted', false)
 
-        const progress = totalCount && totalCount > 0
-          ? Math.round((completedCount || 0) / totalCount * 100)
-          : 0
+        if (milestoneError) {
+          console.error('Error fetching milestones for goal progress:', milestoneError)
+        }
+
+        const milestones = milestoneRows || []
+        const totalMilestones = milestones.length
+        const completedMilestones = milestones.filter(m => m.status === 'completed').length
+
+        let totalActions = 0
+        let completedActions = 0
+
+        milestones.forEach((milestone: any) => {
+          const milestoneActions = milestone.actions || []
+          totalActions += milestoneActions.length
+          completedActions += milestoneActions.filter((action: any) => action.status === 'completed').length
+        })
+
+        let progress = 0
+
+        if (totalActions > 0) {
+          progress = Math.round((completedActions / totalActions) * 100)
+        } else if (totalMilestones > 0) {
+          progress = Math.round((completedMilestones / totalMilestones) * 100)
+        }
 
         return {
           ...goal,
           progress,
-          hasPlan: (totalCount || 0) > 0,
+          hasPlan: totalMilestones > 0,
         }
       })
     )

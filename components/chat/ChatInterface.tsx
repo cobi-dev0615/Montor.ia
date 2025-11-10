@@ -212,20 +212,78 @@ export function ChatInterface({
 
   const computeSuggestedTerm = (
     level: PlanWizardLevel,
-    availability: number
+    availability: number,
+    objective?: string
   ) => {
-    let baseWeeks = 8;
-    if (level === "beginner") baseWeeks = 12;
-    if (level === "intermediate") baseWeeks = 8;
-    if (level === "advanced") baseWeeks = 6;
+    let baseWeeks: number;
+    switch (level) {
+      case "beginner":
+        baseWeeks = 8;
+        break;
+      case "intermediate":
+        baseWeeks = 6;
+        break;
+      case "advanced":
+      default:
+        baseWeeks = 4;
+        break;
+    }
 
     if (availability >= 6) {
-      baseWeeks = Math.max(4, baseWeeks - 2);
+      baseWeeks = Math.max(2, baseWeeks - 2);
+    } else if (availability >= 4) {
+      baseWeeks = Math.max(3, baseWeeks - 1);
     } else if (availability <= 2) {
       baseWeeks += 2;
     }
 
-    return Math.min(24, Math.max(4, baseWeeks));
+    const objectiveLength = objective ? objective.split(/\s+/).filter(Boolean).length : 0;
+    if (objectiveLength > 0 && objectiveLength <= 5) {
+      baseWeeks = Math.max(1, baseWeeks - 2);
+    }
+
+    return Math.min(24, Math.max(1, baseWeeks));
+  };
+
+  const buildTermPrompt = (suggestedTerm?: number) => {
+    if (!suggestedTerm) {
+      return "Quanto tempo você estima ser adequado? Pode responder com dias ou semanas, por exemplo: 3 dias ou 2 semanas.";
+    }
+    const label = suggestedTerm === 1 ? "1 semana" : `${suggestedTerm} semanas`;
+    return `Com base nisso, sugiro um plano de ${label}. Isso equilibra o desafio com o seu ritmo. Está tudo bem para você? Se preferir outro período, me diga quantos dias ou semanas você gostaria.`;
+  };
+
+  const parseDurationInput = (input: string, fallbackWeeks?: number) => {
+    const lower = input.toLowerCase();
+    const numberMatch = lower.match(/(\d+)/);
+    if (!numberMatch) {
+      if (/(a|one|um|uma)\s+day/.test(lower) || /um dia/.test(lower) || /uma dia/.test(lower)) {
+        return 1;
+      }
+      if (/(a|one|um|uma)\s+week/.test(lower) || /uma semana/.test(lower) || /um semana/.test(lower)) {
+        return 1;
+      }
+      if (/couple of days/.test(lower) || /dois dias/.test(lower) || /duas dias/.test(lower)) {
+        return 1;
+      }
+      return fallbackWeeks ? Math.max(1, Math.min(52, fallbackWeeks)) : null;
+    }
+
+    const value = parseInt(numberMatch[1], 10);
+    if (Number.isNaN(value) || value <= 0) {
+      return fallbackWeeks ? Math.max(1, Math.min(52, fallbackWeeks)) : null;
+    }
+
+    if (/\b(dia|dias|day|days)\b/.test(lower)) {
+      const weeks = Math.max(1, Math.ceil(value / 7));
+      return Math.min(52, weeks);
+    }
+
+    if (/\b(semana|semanas|week|weeks)\b/.test(lower)) {
+      return Math.min(52, Math.max(1, value));
+    }
+
+    return Math.min(52, Math.max(1, value));
   };
 
   const ensureProfileStored = useCallback(
@@ -325,10 +383,11 @@ export function ChatInterface({
 
         await ensureProfileStored(profileToPersist);
 
-        appendLocalMessage(
-          "assistant",
-          `Tudo pronto! Criei a meta "${goal.title}" e montei um plano de ${data.termWeeks} semanas adaptado ao que você compartilhou. Você pode ver cada marco e micro-ação na página de Metas. Quando estiver pronto, siga para a próxima ação e me conte como foi!`
-        );
+      const weeksLabel = data.termWeeks === 1 ? "1 semana" : `${data.termWeeks} semanas`;
+      appendLocalMessage(
+        "assistant",
+        `Tudo pronto! Criei a meta "${goal.title}" e montei um plano de ${weeksLabel} adaptado ao que você compartilhou. Você pode ver cada marco e micro-ação na página de Metas. Quando estiver pronto, siga para a próxima ação e me conte como foi!`
+      );
 
         resetPlanWizard();
         setPlanWizardData({});
@@ -540,7 +599,8 @@ export function ChatInterface({
 
           const suggestedTerm = computeSuggestedTerm(
             planWizardData.level!,
-            availability
+            availability,
+            planWizardData.objective
           );
 
           setPlanWizardData((prev) => ({
@@ -550,18 +610,15 @@ export function ChatInterface({
           }));
           setPlanWizardStep("termConfirmation");
 
-          appendLocalMessage(
-            "assistant",
-            `Com base no que você compartilhou, sugiro um plano de ${suggestedTerm} semanas. Isso equilibra o desafio com o ritmo que você pode manter. Está tudo bem para você? Se preferir outro período, pode me dizer quantas semanas gostaria.`
-          );
+          appendLocalMessage("assistant", buildTermPrompt(suggestedTerm));
           return;
         }
         case "termConfirmation": {
-          const number = extractNumberFromText(content);
-          if (number && number >= 4 && number <= 52) {
+          const parsedTerm = parseDurationInput(content, planWizardData.suggestedTerm);
+          if (parsedTerm) {
             const finalizedData = {
               ...planWizardData,
-              termWeeks: number,
+              termWeeks: parsedTerm,
               suggestedTerm: planWizardData.suggestedTerm,
             } as Required<PlanWizardData>;
             setPlanWizardData(finalizedData);
@@ -584,7 +641,7 @@ export function ChatInterface({
 
           appendLocalMessage(
             "assistant",
-            "Sem problemas! Me diga em quantas semanas você quer concluir esse plano (por exemplo: 10 semanas)."
+            "Sem problemas! Me diga em quantos dias ou semanas você quer concluir esse plano (por exemplo: 5 dias ou 2 semanas)."
           );
           return;
         }

@@ -117,37 +117,46 @@ export async function POST(request: NextRequest) {
 
     // Check if milestone should be completed (all actions done)
     if (milestone_id && progress_type === 'action') {
-      const { count: totalActions } = await supabase
+      const { data: milestoneActions, error: actionsError } = await supabase
         .from('actions')
-        .select('*', { count: 'exact', head: true })
+        .select('id, status')
         .eq('milestone_id', milestone_id)
         .eq('is_deleted', false)
 
-      const { count: completedActions } = await supabase
-        .from('actions')
-        .select('*', { count: 'exact', head: true })
-        .eq('milestone_id', milestone_id)
-        .eq('status', 'completed')
-        .eq('is_deleted', false)
+      if (!actionsError && milestoneActions) {
+        const totalActions = milestoneActions.length
+        const completedActions = milestoneActions.filter(action => action.status === 'completed').length
 
-      // If all actions are completed, mark milestone as completed
-      if (totalActions && completedActions && totalActions > 0 && completedActions === totalActions) {
-        await supabase
-          .from('milestones')
-          .update({
-            status: 'completed',
-            completed_at: new Date().toISOString(),
-          })
-          .eq('id', milestone_id)
-      } else if (completedActions && completedActions > 0) {
-        // Mark milestone as in_progress if at least one action is completed
-        await supabase
-          .from('milestones')
-          .update({
-            status: 'in_progress',
-          })
-          .eq('id', milestone_id)
-          .eq('status', 'pending')
+        if (totalActions > 0 && completedActions === totalActions) {
+          await supabase
+            .from('milestones')
+            .update({
+              status: 'completed',
+              completed_at: new Date().toISOString(),
+            })
+            .eq('id', milestone_id)
+
+          const pendingActions = milestoneActions.filter(action => action.status !== 'completed')
+
+          if (pendingActions.length > 0) {
+            const nowIso = new Date().toISOString()
+            await supabase
+              .from('actions')
+              .update({
+                status: 'completed',
+                completed_at: nowIso,
+              })
+              .in('id', pendingActions.map(action => action.id))
+          }
+        } else if (completedActions > 0) {
+          await supabase
+            .from('milestones')
+            .update({
+              status: 'in_progress',
+            })
+            .eq('id', milestone_id)
+            .eq('status', 'pending')
+        }
       }
     }
 

@@ -79,11 +79,37 @@ export async function POST(request: NextRequest) {
     // Get user context (progress, streak, name)
     const { data: userData } = await supabase
       .from('users')
-      .select('total_progress, consistency_streak, full_name')
+      .select('total_progress, consistency_streak, full_name, onboarding_data')
       .eq('id', user.id)
       .single()
 
     const userName = userData?.full_name || 'there'
+    const onboardingData = (userData?.onboarding_data as Record<string, any>) || {}
+    const existingChatSession = onboardingData.chatSession || null
+    let chatSessionState = existingChatSession ? { ...existingChatSession } : {}
+
+    const persistChatSession = async (session: any) => {
+      chatSessionState = { ...chatSessionState, ...session }
+      Object.keys(chatSessionState).forEach((key) => {
+        if (chatSessionState[key] === null || chatSessionState[key] === undefined) {
+          delete chatSessionState[key]
+        }
+      })
+
+      const updatedOnboarding = {
+        ...onboardingData,
+        chatSession: Object.keys(chatSessionState).length > 0 ? chatSessionState : null,
+      }
+
+      const { error: sessionError } = await supabase
+        .from('users')
+        .update({ onboarding_data: updatedOnboarding })
+        .eq('id', user.id)
+
+      if (sessionError) {
+        console.error('Error updating chat session state:', sessionError)
+      }
+    }
 
     // Get goal and plan details - check all user goals if no goalId provided
     let currentGoal: string | undefined
@@ -231,19 +257,26 @@ NÃO se envolva em conversa geral fora desse contexto. Foque em ajudá-lo a defi
           const completedActionsCount = allActionsResults.reduce((acc, r) => acc + r.completed, 0)
 
           planContext = {
+            goalId: goal.id,
             milestones: milestones.map(m => ({
+              id: m.id,
               title: m.title,
               description: m.description,
               status: m.status,
               order: m.order_index,
             })),
             currentMilestone: currentMilestone ? {
+              id: currentMilestone.id,
               title: currentMilestone.title,
               description: currentMilestone.description,
+              status: currentMilestone.status,
             } : null,
             currentAction: currentAction ? {
+              id: currentAction.id,
               title: currentAction.title,
               description: currentAction.description,
+              milestoneId: currentAction.milestone_id,
+              status: currentAction.status,
             } : null,
             progress: {
               milestonesCompleted: completedMilestones,
@@ -252,8 +285,33 @@ NÃO se envolva em conversa geral fora desse contexto. Foque em ajudá-lo a defi
               totalActions: totalActionsCount,
             },
           }
+
+          if (planContext.currentAction) {
+            await persistChatSession({
+              goalId: planContext.goalId,
+              milestoneId: planContext.currentAction.milestoneId,
+              actionId: planContext.currentAction.id,
+              lastUpdated: new Date().toISOString(),
+            })
+          } else {
+            await persistChatSession({
+              goalId: planContext.goalId,
+              milestoneId: null,
+              actionId: null,
+              status: 'completed',
+              lastUpdated: new Date().toISOString(),
+            })
+          }
         } else {
           // Goal exists but no plan yet
+          await persistChatSession({
+            goalId: goal.id,
+            milestoneId: null,
+            actionId: null,
+            status: 'no_plan',
+            lastUpdated: new Date().toISOString(),
+          })
+
           systemMessageOverride = `O usuário tem uma meta "${goal.title}" (${goal.main_goal}) mas ainda não criou um plano.
 
 IMPORTANTE: Sua resposta DEVE estar em PORTUGUÊS BRASILEIRO e:
@@ -270,10 +328,123 @@ NÃO se envolva em conversa geral. Foque APENAS em guiá-los para criar um plano
 
     // Detect keyword before processing
     const keyword = detectKeyword(message)
+    const normalizedMessage = message.toLowerCase().trim()
+    const positiveConfirmations = [
+      'sim',
+      'claro',
+      'sim, pode marcar',
+      'pode marcar',
+      'pode sim',
+      'ok',
+      'yes',
+      'yeah',
+      'yep',
+      'sure',
+      'done',
+      'finished',
+      'i finished',
+      'i did it',
+      'feito',
+      'fiz',
+      'concluído',
+      'concluido',
+      'complete',
+      'terminado',
+      'pronto',
+      'com certeza',
+    ]
+    const negativeConfirmations = [
+      'não',
+      'nao',
+      'not yet',
+      'ainda não',
+      'ainda nao',
+      'no',
+      'não ainda',
+      'nao ainda',
+      'não, ainda falta',
+      'nao, ainda falta',
+      'not really',
+    ]
+    const pendingCompletion = chatSessionState.pendingCompletion
+    let completionConfirmed = false
+    let completionPrompted = false
     let progressLogResult: any = null
+    const totalActionsInContext = planContext?.progress?.totalActions ?? 0
+    const completedActionsInContext = planContext?.progress?.actionsCompleted ?? 0
+    const progressPercentFromContext =
+      totalActionsInContext > 0
+        ? Math.round((completedActionsInContext / totalActionsInContext) * 100)
+        : 0
+
+    const getProgressTone = (percent: number) => {
+      if (percent <= 0) return 'starting'
+      if (percent < 20) return 'early'
+      if (percent < 70) return 'mid'
+      if (percent < 100) return 'late'
+      return 'complete'
+    }
+    const getProgressGuidance = (tone: string) => {
+      switch (tone) {
+        case 'starting':
+          return 'Eles estão no início. Valide o primeiro passo e foque em torná-lo claro, simples e alcançável.'
+        case 'early':
+          return 'Eles deram alguns passos. Reforce o ritmo e ajude a construir confiança sem exagerar.'
+        case 'mid':
+          return 'Eles estão no meio do plano. Destaque o que já conquistaram e trabalhe para remover obstáculos específicos.'
+        case 'late':
+          return 'Eles estão próximos da conclusão. Reforce a consistência e prepare-os para finalizar com energia.'
+        case 'complete':
+          return 'O plano está concluído. Celebre o resultado, reconheça o esforço e explore próximos objetivos ou manutenção.'
+        default:
+          return 'Adapte o tom ao estágio atual: motivador, claro e realista.'
+      }
+    }
+    const progressTone = getProgressTone(progressPercentFromContext)
+    const progressGuidance = getProgressGuidance(progressTone)
+    const progressSummaryText = `Progresso atual: ${progressPercentFromContext}% (${completedActionsInContext}/${totalActionsInContext} ações concluídas).`
+
+    if (keyword === 'completed' && goalId && currentAction) {
+      if (
+        !pendingCompletion ||
+        pendingCompletion.goalId !== goalId ||
+        pendingCompletion.actionId !== currentAction.id
+      ) {
+        await persistChatSession({
+          pendingCompletion: {
+            goalId,
+            actionId: currentAction.id,
+          },
+        })
+        systemMessageOverride =
+          `Parece que você finalizou "${currentAction.title}". Quer que eu marque esta ação como concluída agora?` +
+          ' Responda "Sim" ou "Não".'
+        completionPrompted = true
+      } else {
+        completionConfirmed = true
+      }
+    } else if (
+      pendingCompletion &&
+      currentAction &&
+      pendingCompletion.goalId === goalId &&
+      pendingCompletion.actionId === currentAction.id
+    ) {
+      if (positiveConfirmations.includes(normalizedMessage)) {
+        completionConfirmed = true
+      } else if (negativeConfirmations.includes(normalizedMessage)) {
+        await persistChatSession({ pendingCompletion: null })
+        systemMessageOverride =
+          'Perfeito, vamos continuar trabalhando nessa ação quando você estiver pronto.'
+        completionPrompted = true
+      }
+    }
+
+    if (completionConfirmed && pendingCompletion) {
+      await persistChatSession({ pendingCompletion: null })
+    }
 
     // Handle keyword-based actions BEFORE saving message
-    if (keyword === 'completed' && goalId && currentAction) {
+    if (completionConfirmed && goalId && currentAction) {
       // Log progress (internal API call)
       try {
         const progressRequest = new NextRequest(new URL('/api/progress', request.url), {
@@ -302,21 +473,141 @@ NÃO se envolva em conversa geral. Foque APENAS em guiá-los para criar um plano
         // Continue even if progress logging fails
       }
 
-      // Set system message override for completion
-      systemMessageOverride = `O usuário acabou de completar com sucesso a ação de hoje: "${currentAction.title}".
+      let planFullyCompleted = false
+
+      let nextActionRecord: any = null
+
+      try {
+        // Determine next action after completion
+        const { data: milestoneList } = await supabase
+          .from('milestones')
+          .select('id')
+          .eq('goal_id', goalId)
+          .eq('is_deleted', false)
+          .order('order_index', { ascending: true })
+
+        if (milestoneList && milestoneList.length > 0) {
+          for (const milestone of milestoneList) {
+            const { data: pendingActions } = await supabase
+              .from('actions')
+              .select('*')
+              .eq('milestone_id', milestone.id)
+              .eq('status', 'pending')
+              .eq('is_deleted', false)
+              .order('created_at', { ascending: true })
+              .limit(1)
+
+            if (pendingActions && pendingActions.length > 0) {
+              nextActionRecord = pendingActions[0]
+              break
+            }
+          }
+        }
+
+        if (nextActionRecord) {
+          await persistChatSession({
+            goalId,
+            milestoneId: nextActionRecord.milestone_id,
+            actionId: nextActionRecord.id,
+            lastUpdated: new Date().toISOString(),
+          })
+        } else {
+          planFullyCompleted = true
+          await persistChatSession({
+            goalId,
+            milestoneId: null,
+            actionId: null,
+            status: 'completed',
+            lastUpdated: new Date().toISOString(),
+          })
+
+          // Mark goal as completed
+          await supabase
+            .from('goals')
+            .update({
+              status: 'completed',
+              completed_at: new Date().toISOString(),
+            })
+            .eq('id', goalId)
+            .eq('is_deleted', false)
+
+          // Log goal completion (progress_type: goal)
+          await supabase
+            .from('progress_logs')
+            .insert({
+              user_id: user.id,
+              goal_id: goalId,
+              progress_type: 'goal',
+              points_earned: 20,
+              is_deleted: false,
+            })
+        }
+      } catch (trackingError) {
+        console.error('Error updating next action after completion:', trackingError)
+      }
+
+      const completionTone = getProgressTone(
+        Math.min(100, progressPercentFromContext + (planContext?.progress ? (100 / Math.max(planContext.progress.totalActions, 1)) : 0))
+      )
+
+      const completionToneGuidance =
+        completionTone === 'starting'
+          ? `Eles estão dando os primeiros passos. Reconheça que iniciaram a jornada e convide-os a manter o ritmo.`
+          : completionTone === 'early'
+          ? `Eles concluíram as primeiras ações. Reforce que já começaram a construir impulso.`
+          : completionTone === 'mid'
+          ? `Eles estão no meio do plano. Destaque a solidez do progresso e mantenha o foco.`
+          : completionTone === 'late'
+          ? `Eles estão próximos de concluir o plano. Celebre a consistência e prepare-os para o final.`
+          : `Eles concluíram todas as ações. Celebre o plano completo e discuta próximos passos ou evolução.`
+
+      if (planFullyCompleted) {
+        const totalActions = Math.max(totalActionsInContext, completedActionsInContext + 1)
+        const finalCompleted = Math.min(totalActions, completedActionsInContext + 1)
+        const finalPercent = totalActions > 0 ? Math.round((finalCompleted / totalActions) * 100) : 100
+
+        systemMessageOverride = `O usuário concluiu TODAS as ações do plano atual! 🎉
+Progresso final: ${finalPercent}% (${finalCompleted}/${totalActions} ações).
 
 SUA RESPOSTA (em PORTUGUÊS BRASILEIRO):
-1. Celebre a conquista deles calorosamente e genuinamente: "Isso é fantástico! Você conseguiu!"
-2. Reconheça o progresso deles: "Você está fazendo um ótimo progresso em direção à sua meta"
-3. Se houver uma próxima ação, apresente-a naturalmente: "Ótimo trabalho! Agora, para seu próximo passo: [próxima ação]"
-4. Seja encorajador e solidário
-5. Mantenha conversacional (3-4 frases)
+1. Celebre intensamente a conquista total e reconheça o esforço deles nesta jornada.
+2. Reflita brevemente sobre aprendizados ou ganhos percebidos.
+3. Convide-os a definir o próximo desafio OU a consolidar essa vitória: "Quer celebrar este resultado ou prefere planejar o próximo passo?"
+4. Mantenha a resposta entre 3-4 frases, calorosa, inspiradora e clara.
 
-IMPORTANTE: 
-- Seja genuinamente comemorativo - este é um momento de conquista
-- Não se apresse para a próxima ação - deixe-os sentir a realização
-- Se apresentar a próxima ação, faça naturalmente: "Quando estiver pronto, seu próximo passo é..."
-- Termine com encorajamento, não com um comando`
+IMPORTANTE:
+- Deixe claro que o plano atual está completo e eles alcançaram o objetivo definido.
+- Ofereça suporte para próximos passos (manutenção, novo plano, outra área).`
+      } else {
+        // Set system message override for completion (parcial)
+        const nextActionText = nextActionRecord
+          ? `Próxima ação sugerida: "${nextActionRecord.title}"${nextActionRecord.description ? ` — ${nextActionRecord.description}` : ''}.`
+          : 'Aguarde a próxima ação ou ajuste conforme necessário.'
+
+        systemMessageOverride = `O usuário acabou de completar com sucesso a ação de hoje: "${currentAction.title}".
+${progressSummaryText}
+Estimativa após esta conclusão: ${Math.min(
+          progressPercentFromContext +
+            (planContext?.progress
+              ? Math.round(100 / Math.max(planContext.progress.totalActions, 1))
+              : 0),
+          100
+        )}%.
+${nextActionText}
+
+SUA RESPOSTA (em PORTUGUÊS BRASILEIRO):
+1. Ajuste seu tom de acordo com esta orientação: ${completionToneGuidance}
+2. Celebre a conquista deles de forma compatível com o progresso real.
+3. Se houver uma próxima ação, apresente-a naturalmente: "Quando estiver pronto, o próximo passo é [próxima ação]".
+4. Seja encorajador, caloroso e mantenha 3-4 frases.
+
+IMPORTANTE:
+- Não superestime o progresso se o percentual ainda for baixo. Foque em encorajar os próximos passos.
+- Deixe-os sentir a conquista no ritmo certo para o estágio atual.
+- Termine com incentivo personalizado, não com um comando rígido.`
+      }
+    } else if (completionPrompted) {
+      // Confirmation was requested; skip further keyword handling
     } else if (keyword === 'couldnt' && goalId) {
       // Update action status to reflect postponement
       if (currentAction) {
@@ -341,6 +632,8 @@ IMPORTANTE:
 
       // Set system message override for couldn't do it
       systemMessageOverride = `O usuário não conseguiu completar a ação: "${currentAction?.title || 'a ação'}".
+${progressSummaryText}
+Orientação de estágio: ${progressGuidance}
 
 SUA RESPOSTA (em PORTUGUÊS BRASILEIRO):
 1. Responda com empatia e compreensão: "Tudo bem, vamos descobrir o que aconteceu"
@@ -359,6 +652,8 @@ IMPORTANTE:
     } else if (keyword === 'adjust' && goalId) {
       // Set system message override for adjust
       systemMessageOverride = `O usuário quer ajustar a ação: "${currentAction?.title || 'a ação'}".
+${progressSummaryText}
+Orientação de estágio: ${progressGuidance}
 
 SUA RESPOSTA (em PORTUGUÊS BRASILEIRO):
 1. Reconheça a solicitação deles: "Claro, vamos ajustar para funcionar melhor para você"
@@ -434,7 +729,7 @@ IMPORTANTE:
 ${planContext.currentAction.description ? `- Action Description: ${planContext.currentAction.description}` : ''}
 - Conversation turns: ${userMessageCount}
 
-Your role is to NATURALLY guide the user toward completing this action. Be supportive, helpful, and conversational. Only check completion status after having a meaningful conversation about the action.`
+Your role is to NATURALLY guide the user toward completing this action. Be solidário, útil e conversacional. Relembre o usuário de que, ao concluir a ação, ele deve responder com "Concluído". Se não conseguir realizar, a resposta deve ser "Não consegui fazer". Caso precise mudar algo, instrua-o a escrever "Ajustar". Só cheque o status depois de conversar sobre a ação.`
 
       // If no keyword detected but we have a plan, guide the conversation naturally
       if (!keyword && planContext.currentAction && !systemMessageOverride) {
@@ -447,9 +742,10 @@ Your role is to NATURALLY guide the user toward completing this action. Be suppo
           systemMessageOverride = `Você é um mentor solidário e orientado a metas ajudando o usuário a trabalhar em direção à sua meta: "${currentGoal}".
 
 SITUAÇÃO ATUAL:
-- Progresso do usuário: ${progressPercent}% completo (${planContext.progress.actionsCompleted}/${planContext.progress.totalActions} ações concluídas)
+- ${progressSummaryText}
 - Marco atual: "${planContext.currentMilestone?.title}"
 - Ação de hoje: "${planContext.currentAction.title}"
+- Orientação de estágio: ${progressGuidance}
 
 SUA ABORDAGEM (em PORTUGUÊS BRASILEIRO):
 1. Comece reconhecendo calorosamente o progresso deles: "Você está ${progressPercent}% do caminho - esse é um progresso maravilhoso!"
@@ -469,9 +765,10 @@ IMPORTANTE:
 
 CONTEXTO:
 - Meta: "${currentGoal}"
-- Progresso: ${progressPercent}% completo
+- ${progressSummaryText}
 - Marco atual: "${planContext.currentMilestone?.title}"
 - Ação: "${planContext.currentAction.title}"
+- Orientação de estágio: ${progressGuidance}
 
 SEU PAPEL (em PORTUGUÊS BRASILEIRO):
 1. Ajude o usuário a entender COMO fazer esta ação
@@ -497,8 +794,9 @@ IMPORTANTE:
 
 CONTEXTO:
 - Meta: "${currentGoal}"
-- Progresso: ${progressPercent}% completo
+- ${progressSummaryText}
 - Eles têm discutido esta ação por várias trocas
+- Orientação de estágio: ${progressGuidance}
 
 SUA ABORDAGEM (em PORTUGUÊS BRASILEIRO):
 1. Verifique naturalmente: "Como está indo com [ação]?" ou "Você teve a chance de trabalhar em [ação]?"
@@ -518,8 +816,9 @@ IMPORTANTE:
 
 CONTEXTO:
 - Meta: "${currentGoal}"
-- Progresso: ${progressPercent}% completo
+- ${progressSummaryText}
 - Vocês têm discutido esta ação por um tempo
+- Orientação de estágio: ${progressGuidance}
 
 SUA ABORDAGEM (em PORTUGUÊS BRASILEIRO):
 1. Verifique gentilmente o status de conclusão: "Você teve a chance de completar [ação]? Você pode dizer 'Concluído', 'Não consegui fazer' ou 'Ajustar' se precisar modificá-la."

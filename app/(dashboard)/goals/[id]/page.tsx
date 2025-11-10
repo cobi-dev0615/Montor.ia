@@ -10,6 +10,7 @@ import { ArrowLeft, Edit, Trash2, Loader2 } from 'lucide-react'
 import { OneThingDisplay } from '@/components/goals/OneThingDisplay'
 import { MilestoneTimeline } from '@/components/goals/MilestoneTimeline'
 import { EditGoalModal } from '@/components/goals/EditGoalModal'
+import { createSupabaseClient } from '@/lib/supabase/client'
 
 interface Goal {
   id: string
@@ -28,6 +29,7 @@ export default function GoalDetailPage({
   params: { id: string }
 }) {
   const router = useRouter()
+  const supabase = createSupabaseClient()
   const [goal, setGoal] = useState<Goal | null>(null)
   const [hasMilestones, setHasMilestones] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -69,8 +71,19 @@ export default function GoalDetailPage({
 
     setIsDeleting(true)
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
       const response = await fetch(`/api/goals/${params.id}`, {
-        method: 'DELETE',
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          is_deleted: true,
+          user_id: user?.id ?? null,
+        }),
       })
 
       if (!response.ok) {

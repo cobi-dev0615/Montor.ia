@@ -66,7 +66,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { title, description, main_goal, status } = body
+    const { title, description, main_goal, status, is_deleted } = body
 
     // Verify goal ownership
     const { data: existingGoal } = await supabase
@@ -77,7 +77,7 @@ export async function PATCH(
       .eq('is_deleted', false)
       .single()
 
-    if (!existingGoal) {
+    if (!existingGoal || existingGoal.user_id !== user.id) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 })
     }
 
@@ -87,22 +87,21 @@ export async function PATCH(
     if (description !== undefined) updateData.description = description
     if (main_goal !== undefined) updateData.main_goal = main_goal
     if (status !== undefined) updateData.status = status
+    if (is_deleted !== undefined) updateData.is_deleted = is_deleted
     updateData.updated_at = new Date().toISOString()
 
-    const { data: goal, error } = await supabase
+    const { error: updateError } = await supabase
       .from('goals')
       .update(updateData)
       .eq('id', params.id)
       .eq('user_id', user.id)
-      .select()
-      .single()
 
-    if (error) {
-      console.error('Error updating goal:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (updateError) {
+      console.error('Error updating goal:', updateError)
+      return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    return NextResponse.json({ goal })
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Update goal API error:', error)
     return NextResponse.json(

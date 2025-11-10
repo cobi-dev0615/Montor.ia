@@ -108,7 +108,9 @@ export function MessageItem({ message, userName }: MessageItemProps) {
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex gap-3 max-w-[70%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div
+        className={`flex gap-3 ${isUser ? 'flex-row-reverse max-w-[75%]' : 'flex-row max-w-[70%]'} w-full`}
+      >
         {isUser ? (
           <UserAvatar />
         ) : (
@@ -116,15 +118,15 @@ export function MessageItem({ message, userName }: MessageItemProps) {
             <span className="text-sm">🤖</span>
           </div>
         )}
-        <div className="flex flex-col">
+        <div className="flex flex-col w-full max-w-full">
           <div
             className={`rounded-2xl px-4 py-2 ${
               isUser
                 ? 'bg-gradient-to-br from-[#00d4ff] to-[#0099ff] text-white shadow-[0_0_15px_rgba(0,212,255,0.3)]'
                 : 'bg-[rgba(55,65,81,0.8)] text-gray-100 border border-[rgba(0,212,255,0.2)]'
-            }`}
+            } max-w-full`}
           >
-            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
           </div>
           <span className={`text-xs text-gray-500 mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
             {format(new Date(message.created_at), 'HH:mm')}
