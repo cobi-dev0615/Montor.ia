@@ -398,7 +398,7 @@ export function ChatInterface({
         
         if (milestoneSummaries.length > 0) {
           planSummaryMessage += `📋 **Ações por Marco:**\n`;
-          milestoneSummaries.forEach((milestone, index) => {
+          milestoneSummaries.forEach((milestone: { id: string; title: string; actionCount: number }, index: number) => {
             planSummaryMessage += `• Marco ${index + 1} (${milestone.title}): ${milestone.actionCount} ação${milestone.actionCount !== 1 ? 'ões' : ''}\n`;
           });
           planSummaryMessage += `\n`;

@@ -55,7 +55,7 @@ export async function getUserGoalProgress(
       const { count: completedActions } = await supabase
         .from('actions')
         .select('*', { count: 'exact', head: true })
-        .in('milestone_id', milestones.map(m => m.id))
+        .in('milestone_id', milestones.map((m: { id: string }) => m.id))
         .eq('status', 'completed')
         .eq('is_deleted', false)
 
@@ -63,7 +63,7 @@ export async function getUserGoalProgress(
       const { count: totalActions } = await supabase
         .from('actions')
         .select('*', { count: 'exact', head: true })
-        .in('milestone_id', milestones.map(m => m.id))
+        .in('milestone_id', milestones.map((m: { id: string }) => m.id))
         .eq('is_deleted', false)
 
       const progress = totalActions && totalActions > 0
