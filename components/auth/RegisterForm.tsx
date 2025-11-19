@@ -131,8 +131,19 @@ export function RegisterForm() {
         return
       }
 
-      // Step 5: If session exists (email verification disabled in Supabase), redirect to dashboard
-      router.push('/dashboard')
+      // Step 5: If session exists (email verification disabled in Supabase), check for active goals and redirect accordingly
+      const { data: goalsData } = await supabase
+        .from('goals')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .eq('is_deleted', false)
+        .limit(1)
+
+      const hasActiveGoals = goalsData && goalsData.length > 0
+      const redirectPath = hasActiveGoals ? '/goals' : '/chat'
+      
+      router.push(redirectPath)
       router.refresh()
     } catch (err) {
       console.error('Registration error:', err)

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { validateGoal } from '@/lib/goals/validateGoal'
+import { hasActiveGoals } from '@/lib/goals/hasActiveGoals'
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,7 +42,6 @@ export async function GET(request: NextRequest) {
 
         const milestones = milestoneRows || []
         const totalMilestones = milestones.length
-        const completedMilestones = milestones.filter(m => m.status === 'completed').length
 
         let totalActions = 0
         let completedActions = 0
@@ -51,13 +52,10 @@ export async function GET(request: NextRequest) {
           completedActions += milestoneActions.filter((action: any) => action.status === 'completed').length
         })
 
-        let progress = 0
-
-        if (totalActions > 0) {
-          progress = Math.round((completedActions / totalActions) * 100)
-        } else if (totalMilestones > 0) {
-          progress = Math.round((completedMilestones / totalMilestones) * 100)
-        }
+        // Calculate progress based on actions only
+        const progress = totalActions > 0
+          ? Math.round((completedActions / totalActions) * 100)
+          : 0
 
         return {
           ...goal,
@@ -92,6 +90,32 @@ export async function POST(request: NextRequest) {
     if (!title || !main_goal) {
       return NextResponse.json(
         { error: 'Title and main goal are required' },
+        { status: 400 }
+      )
+    }
+
+    // Check if user already has an active goal
+    const userHasActiveGoals = await hasActiveGoals(supabase, user.id)
+    
+    if (userHasActiveGoals) {
+      return NextResponse.json(
+        { 
+          error: 'Você já possui uma meta ativa. Complete ou cancele sua meta atual antes de criar uma nova.',
+          hasActiveGoal: true
+        },
+        { status: 400 }
+      )
+    }
+
+    // Validate if goal is realistic and achievable
+    const validation = await validateGoal(title, main_goal, description)
+    
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { 
+          error: validation.reason || 'Esta meta não parece ser realista ou alcançável. Por favor, revise sua meta e tente novamente.',
+          validationError: true
+        },
         { status: 400 }
       )
     }

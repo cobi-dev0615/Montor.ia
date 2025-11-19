@@ -371,6 +371,11 @@ export function ChatInterface({
           );
         }
 
+        const planData = await planResponse.json();
+        const milestonesCount = planData.milestonesCount || 0;
+        const totalActionsCount = planData.totalActionsCount || 0;
+        const milestoneSummaries = planData.milestoneSummaries || [];
+
         const profileToPersist = {
           age: data.age,
           objective: data.objective,
@@ -383,11 +388,25 @@ export function ChatInterface({
 
         await ensureProfileStored(profileToPersist);
 
-      const weeksLabel = data.termWeeks === 1 ? "1 semana" : `${data.termWeeks} semanas`;
-      appendLocalMessage(
-        "assistant",
-        `Tudo pronto! Criei a meta "${goal.title}" e montei um plano de ${weeksLabel} adaptado ao que você compartilhou. Você pode ver cada marco e micro-ação na página de Metas. Quando estiver pronto, siga para a próxima ação e me conte como foi!`
-      );
+        const weeksLabel = data.termWeeks === 1 ? "1 semana" : `${data.termWeeks} semanas`;
+        
+        // Build message with milestone and action counts
+        let planSummaryMessage = `Tudo pronto! Criei a meta "${goal.title}" e montei um plano de ${weeksLabel} adaptado ao que você compartilhou.\n\n`;
+        planSummaryMessage += `📊 **Resumo do Plano:**\n`;
+        planSummaryMessage += `• ${milestonesCount} marco${milestonesCount !== 1 ? 's' : ''} criado${milestonesCount !== 1 ? 's' : ''}\n`;
+        planSummaryMessage += `• ${totalActionsCount} ação${totalActionsCount !== 1 ? 'ões' : ''} no total\n\n`;
+        
+        if (milestoneSummaries.length > 0) {
+          planSummaryMessage += `📋 **Ações por Marco:**\n`;
+          milestoneSummaries.forEach((milestone, index) => {
+            planSummaryMessage += `• Marco ${index + 1} (${milestone.title}): ${milestone.actionCount} ação${milestone.actionCount !== 1 ? 'ões' : ''}\n`;
+          });
+          planSummaryMessage += `\n`;
+        }
+        
+        planSummaryMessage += `Você pode ver cada marco e micro-ação na página de Metas. Quando estiver pronto, siga para a próxima ação e me conte como foi!`;
+        
+        appendLocalMessage("assistant", planSummaryMessage);
 
         resetPlanWizard();
         setPlanWizardData({});

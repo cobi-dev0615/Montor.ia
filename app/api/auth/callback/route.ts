@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import type { Database } from '@/lib/types/database'
+import { hasActiveGoals } from '@/lib/goals/hasActiveGoals'
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
@@ -45,8 +46,14 @@ export async function GET(request: NextRequest) {
       }
 
       // Email is now verified and session is active
-      // Redirect to the specified page or dashboard
-      return NextResponse.redirect(new URL(next, requestUrl.origin))
+      // Check if user has active goals to determine redirect destination
+      let redirectPath = next
+      if (next === '/dashboard' || next === '/') {
+        const userHasActiveGoals = await hasActiveGoals(supabase, user.id)
+        redirectPath = userHasActiveGoals ? '/goals' : '/chat'
+      }
+
+      return NextResponse.redirect(new URL(redirectPath, requestUrl.origin))
     } else if (error) {
       console.error('Error exchanging code for session:', error)
       // Redirect to login with error

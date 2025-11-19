@@ -476,6 +476,7 @@ NÃO se envolva em conversa geral. Foque APENAS em guiá-los para criar um plano
       let planFullyCompleted = false
 
       let nextActionRecord: any = null
+      let nextMilestoneForNextAction: any = null
 
       try {
         // Determine next action after completion
@@ -511,6 +512,33 @@ NÃO se envolva em conversa geral. Foque APENAS em guiá-los para criar um plano
             actionId: nextActionRecord.id,
             lastUpdated: new Date().toISOString(),
           })
+          
+          // Get the milestone for the next action
+          const { data: nextMilestone } = await supabase
+            .from('milestones')
+            .select('title')
+            .eq('id', nextActionRecord.milestone_id)
+            .eq('is_deleted', false)
+            .single()
+          
+          nextMilestoneForNextAction = nextMilestone
+          
+          // Send a notification message about the new action
+          const actionNotification = `🎯 **Nova Ação Disponível!**\n\n` +
+            `Agora vamos trabalhar em: **"${nextActionRecord.title}"**\n` +
+            (nextMilestone ? `Este é um passo importante para alcançar o marco: "${nextMilestone.title}"\n\n` : '\n') +
+            `Quando você estiver pronto para começar, me avise! Posso ajudar você a entender como realizar esta ação ou responder qualquer dúvida que você tenha.`
+          
+          // Save the notification message
+          await supabase
+            .from('messages')
+            .insert({
+              user_id: user.id,
+              goal_id: goalId,
+              role: 'assistant',
+              content: actionNotification,
+              is_deleted: false,
+            })
         } else {
           planFullyCompleted = true
           await persistChatSession({
@@ -520,6 +548,14 @@ NÃO se envolva em conversa geral. Foque APENAS em guiá-los para criar um plano
             status: 'completed',
             lastUpdated: new Date().toISOString(),
           })
+
+          // Get goal details before marking as completed
+          const { data: completedGoal } = await supabase
+            .from('goals')
+            .select('title, main_goal')
+            .eq('id', goalId)
+            .eq('is_deleted', false)
+            .single()
 
           // Mark goal as completed
           await supabase
@@ -539,6 +575,32 @@ NÃO se envolva em conversa geral. Foque APENAS em guiá-los para criar um plano
               goal_id: goalId,
               progress_type: 'goal',
               points_earned: 20,
+              is_deleted: false,
+            })
+          
+          // Send congratulatory message and encourage next goal
+          const goalTitle = completedGoal?.title || 'sua meta'
+          const goalMainGoal = completedGoal?.main_goal || goalTitle
+          
+          const congratulationMessage = `🎉 **PARABÉNS! Você Conquistou Sua Meta!** 🎉\n\n` +
+            `Você completou com sucesso: **"${goalTitle}"**\n` +
+            `Sua única coisa: "${goalMainGoal}"\n\n` +
+            `Isso é uma conquista incrível! Você demonstrou dedicação, consistência e determinação para alcançar este objetivo. Cada passo que você deu foi importante para chegar até aqui.\n\n` +
+            `**O que vem a seguir?**\n` +
+            `Agora que você alcançou esta meta, que tal pensar no próximo desafio?\n\n` +
+            `**Vamos criar sua próxima meta?**\n` +
+            `1. Você pode criar uma nova meta diretamente na página de Metas\n` +
+            `2. Ou podemos conversar aqui mesmo e eu te ajudo a definir seu próximo objetivo\n\n` +
+            `Me conte: qual área da sua vida você gostaria de melhorar ou qual novo desafio você quer enfrentar agora?`
+          
+          // Save the congratulation message
+          await supabase
+            .from('messages')
+            .insert({
+              user_id: user.id,
+              goal_id: goalId,
+              role: 'assistant',
+              content: congratulationMessage,
               is_deleted: false,
             })
         }
@@ -566,25 +628,25 @@ NÃO se envolva em conversa geral. Foque APENAS em guiá-los para criar um plano
         const finalCompleted = Math.min(totalActions, completedActionsInContext + 1)
         const finalPercent = totalActions > 0 ? Math.round((finalCompleted / totalActions) * 100) : 100
 
-        systemMessageOverride = `O usuário concluiu TODAS as ações do plano atual! 🎉
+        systemMessageOverride = `O usuário concluiu TODAS as ações do plano atual e ALCANÇOU SUA META! 🎉
 Progresso final: ${finalPercent}% (${finalCompleted}/${totalActions} ações).
+Meta alcançada: "${currentGoal}"
 
 SUA RESPOSTA (em PORTUGUÊS BRASILEIRO):
-1. Celebre intensamente a conquista total e reconheça o esforço deles nesta jornada.
-2. Reflita brevemente sobre aprendizados ou ganhos percebidos.
-3. Convide-os a definir o próximo desafio OU a consolidar essa vitória: "Quer celebrar este resultado ou prefere planejar o próximo passo?"
-4. Mantenha a resposta entre 3-4 frases, calorosa, inspiradora e clara.
+1. Celebre intensamente esta conquista extraordinária! Reconheça todo o esforço, dedicação e consistência que eles demonstraram nesta jornada completa.
+2. Reflita brevemente sobre os aprendizados e ganhos que eles obtiveram ao completar esta meta.
+3. IMPORTANTE: Pergunte sobre o próximo objetivo: "Agora que você conquistou esta meta, qual será seu próximo desafio? Que área da sua vida você gostaria de melhorar ou qual novo objetivo você quer alcançar?"
+4. Encoraje-os a criar uma nova meta: "Vamos criar sua próxima meta juntos? Você pode criar diretamente na página de Metas ou podemos conversar aqui para definir seu próximo objetivo."
+5. Mantenha a resposta calorosa, inspiradora e focada em motivá-los para o próximo passo (4-5 frases).
 
 IMPORTANTE:
-- Deixe claro que o plano atual está completo e eles alcançaram o objetivo definido.
-- Ofereça suporte para próximos passos (manutenção, novo plano, outra área).`
+- Deixe claro que eles COMPLETARAM a meta atual com sucesso.
+- Foque em encorajar a criação de uma NOVA meta.
+- Seja entusiasta sobre o próximo desafio, não apenas sobre a conquista passada.
+- Guie-os naturalmente para pensar no futuro e no próximo objetivo.`
       } else {
         // Set system message override for completion (parcial)
-        const nextActionText = nextActionRecord
-          ? `Próxima ação sugerida: "${nextActionRecord.title}"${nextActionRecord.description ? ` — ${nextActionRecord.description}` : ''}.`
-          : 'Aguarde a próxima ação ou ajuste conforme necessário.'
-
-        systemMessageOverride = `O usuário acabou de completar com sucesso a ação de hoje: "${currentAction.title}".
+        systemMessageOverride = `O usuário acabou de completar com sucesso a ação: "${currentAction.title}".
 ${progressSummaryText}
 Estimativa após esta conclusão: ${Math.min(
           progressPercentFromContext +
@@ -593,18 +655,21 @@ Estimativa após esta conclusão: ${Math.min(
               : 0),
           100
         )}%.
-${nextActionText}
+${nextActionRecord ? `Próxima ação disponível: "${nextActionRecord.title}"${nextActionRecord.description ? ` — ${nextActionRecord.description}` : ''}.${nextMilestoneForNextAction ? ` Esta ação faz parte do marco: "${nextMilestoneForNextAction.title}".` : ''}` : 'Todas as ações foram concluídas.'}
 
 SUA RESPOSTA (em PORTUGUÊS BRASILEIRO):
 1. Ajuste seu tom de acordo com esta orientação: ${completionToneGuidance}
-2. Celebre a conquista deles de forma compatível com o progresso real.
-3. Se houver uma próxima ação, apresente-a naturalmente: "Quando estiver pronto, o próximo passo é [próxima ação]".
+2. Celebre a conquista deles de forma compatível com o progresso real: "Parabéns por completar '${currentAction.title}'! Isso é um passo importante."
+3. **IMPORTANTE - INFORMAR SOBRE A PRÓXIMA AÇÃO**: ${nextActionRecord 
+          ? `Agora, informe claramente sobre a próxima ação: "Agora vamos trabalhar em: **${nextActionRecord.title}**${nextMilestoneForNextAction ? `. Este é um passo importante para alcançar o marco '${nextMilestoneForNextAction.title}'.` : ''}" ${nextActionRecord.description ? `Explique brevemente: "${nextActionRecord.description}". ` : ''}Pergunte se eles têm alguma dúvida sobre como começar ou se precisam de orientação sobre esta ação.`
+          : 'Todas as ações foram concluídas. Parabéns pela conquista completa!'}
 4. Seja encorajador, caloroso e mantenha 3-4 frases.
 
 IMPORTANTE:
 - Não superestime o progresso se o percentual ainda for baixo. Foque em encorajar os próximos passos.
+- **SEMPRE informe sobre a próxima ação de forma clara e destacada quando houver uma próxima ação disponível.**
 - Deixe-os sentir a conquista no ritmo certo para o estágio atual.
-- Termine com incentivo personalizado, não com um comando rígido.`
+- Termine com incentivo personalizado e uma pergunta sobre a próxima ação.`
       }
     } else if (completionPrompted) {
       // Confirmation was requested; skip further keyword handling

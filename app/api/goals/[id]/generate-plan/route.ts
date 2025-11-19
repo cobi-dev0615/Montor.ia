@@ -253,6 +253,24 @@ CRITICAL: Return ONLY the JSON object, no additional text, no markdown, no expla
       }
     }
 
+    // Calculate action counts per milestone using created milestone IDs
+    const milestoneActionCounts: Record<string, number> = {}
+    const milestoneSummaries: Array<{ id: string; title: string; actionCount: number }> = []
+    
+    if (createdMilestones && createdMilestones.length > 0) {
+      for (let i = 0; i < createdMilestones.length && i < checkpoints.length; i++) {
+        const milestone = createdMilestones[i]
+        const checkpoint = checkpoints[i]
+        const actionCount = checkpoint.micro_actions?.length || 0
+        milestoneActionCounts[milestone.id] = actionCount
+        milestoneSummaries.push({
+          id: milestone.id,
+          title: milestone.title,
+          actionCount: actionCount
+        })
+      }
+    }
+
     // Send initial message to chat after plan generation
     // This is done asynchronously, don't wait for it
     fetch(`${request.nextUrl.origin}/api/goals/${goal.id}/initial-message`, {
@@ -265,7 +283,10 @@ CRITICAL: Return ONLY the JSON object, no additional text, no markdown, no expla
     return NextResponse.json({ 
       milestones: createdMilestones || [],
       message: 'Plan generated successfully',
-      actionsCount: allActions.length
+      totalActionsCount: allActions.length,
+      milestonesCount: createdMilestones?.length || 0,
+      milestoneActionCounts: milestoneActionCounts,
+      milestoneSummaries: milestoneSummaries
     })
   } catch (error) {
     console.error('Generate plan API error:', error)

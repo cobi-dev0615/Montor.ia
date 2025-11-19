@@ -47,6 +47,22 @@ export async function POST(
       return NextResponse.json({ error: 'No milestones found' }, { status: 404 })
     }
 
+    // Get action counts for each milestone
+    const milestoneActionCounts: Record<string, number> = {}
+    let totalActionsCount = 0
+    
+    for (const milestone of milestones) {
+      const { count: actionCount } = await supabase
+        .from('actions')
+        .select('*', { count: 'exact', head: true })
+        .eq('milestone_id', milestone.id)
+        .eq('is_deleted', false)
+      
+      const count = actionCount || 0
+      milestoneActionCounts[milestone.id] = count
+      totalActionsCount += count
+    }
+
     // Get first action from first milestone
     const firstMilestone = milestones[0]
     const { data: firstActions } = await supabase
@@ -65,16 +81,31 @@ export async function POST(
     initialMessage += `Your goal: **${goal.title}**\n`
     initialMessage += `Your one thing: "${goal.main_goal}"\n\n`
     
-    initialMessage += `We've created a personalized plan with ${milestones.length} checkpoint${milestones.length > 1 ? 's' : ''} to help you achieve this goal.\n\n`
+    initialMessage += `We've created a personalized plan with ${milestones.length} checkpoint${milestones.length > 1 ? 's' : ''} and ${totalActionsCount} action${totalActionsCount !== 1 ? 's' : ''} to help you achieve this goal.\n\n`
+    
+    // Add action counts per milestone
+    if (Object.keys(milestoneActionCounts).length > 0) {
+      initialMessage += `📋 **Action Breakdown:**\n`
+      milestones.forEach((milestone, index) => {
+        const actionCount = milestoneActionCounts[milestone.id] || 0
+        initialMessage += `• ${milestone.title}: ${actionCount} action${actionCount !== 1 ? 's' : ''}\n`
+      })
+      initialMessage += `\n`
+    }
     
     if (firstAction) {
-      initialMessage += `🎯 **Today's Action:**\n`
-      initialMessage += `${firstAction.title}\n`
+      initialMessage += `🎯 **Sua Ação de Hoje:**\n\n`
+      initialMessage += `**"${firstAction.title}"**\n`
       if (firstAction.description) {
-        initialMessage += `${firstAction.description}\n`
+        initialMessage += `${firstAction.description}\n\n`
       }
-      initialMessage += `\nThis is your first step toward "${firstMilestone.title}".\n\n`
-      initialMessage += `Let's focus on completing this action today. How are you planning to approach it?`
+      initialMessage += `Este é o primeiro passo em direção ao marco: **"${firstMilestone.title}"**\n\n`
+      initialMessage += `**O que você precisa fazer agora:**\n`
+      initialMessage += `1. Entenda o que esta ação envolve\n`
+      initialMessage += `2. Comece a trabalhar nela quando estiver pronto\n`
+      initialMessage += `3. Me avise quando concluir dizendo "Concluído"\n`
+      initialMessage += `4. Se tiver dificuldades, diga "Não consegui fazer" ou "Ajustar"\n\n`
+      initialMessage += `Vamos focar em completar esta ação hoje. Como você planeja abordá-la?`
     } else if (firstMilestone) {
       initialMessage += `🎯 **Your First Checkpoint:**\n`
       initialMessage += `${firstMilestone.title}\n`

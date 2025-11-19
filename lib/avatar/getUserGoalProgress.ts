@@ -31,27 +31,43 @@ export async function getUserGoalProgress(
       return { averageProgress: 0, goalsProgress: [] }
     }
 
-    // Calculate progress for each goal
+    // Calculate progress for each goal based on actions
     const goalsProgress: GoalProgress[] = []
 
     for (const goal of goals) {
-      // Count completed milestones
-      const { count: completedCount } = await supabase
+      // Get all milestones for this goal to find their actions
+      const { data: milestones } = await supabase
         .from('milestones')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('goal_id', goal.id)
+        .eq('is_deleted', false)
+
+      if (!milestones || milestones.length === 0) {
+        goalsProgress.push({
+          goalId: goal.id,
+          title: goal.title,
+          progress: 0,
+        })
+        continue
+      }
+
+      // Count completed actions
+      const { count: completedActions } = await supabase
+        .from('actions')
+        .select('*', { count: 'exact', head: true })
+        .in('milestone_id', milestones.map(m => m.id))
         .eq('status', 'completed')
         .eq('is_deleted', false)
 
-      // Count total milestones
-      const { count: totalCount } = await supabase
-        .from('milestones')
+      // Count total actions
+      const { count: totalActions } = await supabase
+        .from('actions')
         .select('*', { count: 'exact', head: true })
-        .eq('goal_id', goal.id)
+        .in('milestone_id', milestones.map(m => m.id))
         .eq('is_deleted', false)
 
-      const progress = totalCount && totalCount > 0
-        ? Math.round(((completedCount || 0) / totalCount) * 100)
+      const progress = totalActions && totalActions > 0
+        ? Math.round(((completedActions || 0) / totalActions) * 100)
         : 0
 
       goalsProgress.push({
