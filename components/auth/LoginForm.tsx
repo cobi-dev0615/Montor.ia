@@ -53,19 +53,24 @@ export function LoginForm() {
         }
 
         // Email verified, check for active goals and redirect accordingly
-        const { data: goalsData } = await supabase
-          .from('goals')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .eq('is_deleted', false)
-          .limit(1)
+        if (user) {
+          const { data: goalsData } = await supabase
+            .from('goals')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .eq('is_deleted', false)
+            .limit(1)
 
-        const hasActiveGoals = goalsData && goalsData.length > 0
-        const redirectPath = hasActiveGoals ? '/goals' : '/chat'
-        
-        router.push(redirectPath)
-        router.refresh()
+          const hasActiveGoals = goalsData && goalsData.length > 0
+          const redirectPath = hasActiveGoals ? '/goals' : '/chat'
+          
+          router.push(redirectPath)
+          router.refresh()
+        } else {
+          setError('Não foi possível obter informações do usuário')
+          setLoading(false)
+        }
       }
     } catch (err) {
       setError('Ocorreu um erro inesperado')
