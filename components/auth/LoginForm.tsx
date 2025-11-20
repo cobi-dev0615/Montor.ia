@@ -43,9 +43,16 @@ export function LoginForm() {
       // Check if email is verified
       if (data.session) {
         const { data: { user } } = await supabase.auth.getUser()
+        const currentUser = user
+
+        if (!currentUser) {
+          setError('Não foi possível obter informações do usuário')
+          setLoading(false)
+          return
+        }
         
         // If email is not verified, redirect to verification page
-        if (user && !user.email_confirmed_at) {
+        if (!currentUser.email_confirmed_at) {
           setError('Por favor, verifique seu email antes de entrar.')
           router.push(`/verify-email?email=${encodeURIComponent(email)}`)
           setLoading(false)
@@ -53,24 +60,19 @@ export function LoginForm() {
         }
 
         // Email verified, check for active goals and redirect accordingly
-        if (user) {
-          const { data: goalsData } = await supabase
-            .from('goals')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .eq('is_deleted', false)
-            .limit(1)
+        const { data: goalsData } = await supabase
+          .from('goals')
+          .select('id')
+          .eq('user_id', currentUser.id)
+          .eq('status', 'active')
+          .eq('is_deleted', false)
+          .limit(1)
 
-          const hasActiveGoals = goalsData && goalsData.length > 0
-          const redirectPath = hasActiveGoals ? '/goals' : '/chat'
-          
-          router.push(redirectPath)
-          router.refresh()
-        } else {
-          setError('Não foi possível obter informações do usuário')
-          setLoading(false)
-        }
+        const hasActiveGoals = goalsData && goalsData.length > 0
+        const redirectPath = hasActiveGoals ? '/goals' : '/chat'
+        
+        router.push(redirectPath)
+        router.refresh()
       }
     } catch (err) {
       setError('Ocorreu um erro inesperado')
